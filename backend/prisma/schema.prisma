@@ -1,0 +1,181 @@
+// ============================================================
+// 芦塚酒店 統合プラットフォーム - データベーススキーマ
+// 全システム（SmartUnit / CustomerOrder / AlcoholSearch / SalesManager）共通
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- 社員 ---
+// role: driver | sales | warehouse | manager
+model Employee {
+  id     String @id
+  name   String
+  color  String
+  avatar String
+  role   String @default("driver")
+
+  customers     Customer[]
+  orders        Order[]
+  introductions NewProductIntroduction[]
+  evaluations   QuarterlyEvaluation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- 顧客（得意先） ---
+model Customer {
+  id                 String @id
+  name               String
+  furigana           String
+  address            String
+  tel                String
+  area               String
+  category           String
+  assignedEmployeeId String
+  creditLimit        Float
+
+  assignedEmployee Employee               @relation(fields: [assignedEmployeeId], references: [id])
+  orders           Order[]
+  prices           CustomerPrice[]
+  introductions    NewProductIntroduction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- 商品マスタ ---
+model Product {
+  id        String @id
+  name      String
+  genre     String
+  unit      String
+  costPrice Float
+  stock     Int    @default(0)
+  caseSize  Int?
+
+  prices        CustomerPrice[]
+  introductions NewProductIntroduction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- 顧客別販売価格 ---
+model CustomerPrice {
+  customerId   String
+  productId    String
+  sellingPrice Float
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  updatedAt DateTime @updatedAt
+
+  @@id([customerId, productId])
+}
+
+// --- 発注ヘッダー ---
+// source: smart_unit | customer_order | manual
+// deliveryStatus: pending | assigned | picking | picked | in_transit | delivered
+model Order {
+  id               String    @id @default(cuid())
+  customerId       String
+  customerName     String
+  employeeId       String
+  orderDate        DateTime
+  deliveryDate     DateTime?
+  totalAmount      Float
+  totalGrossProfit Float
+  totalGrossMargin Float
+  isNewProduct     Boolean   @default(false)
+  source           String    @default("manual")
+  deliveryStatus   String    @default("pending")
+
+  customer Customer    @relation(fields: [customerId], references: [id])
+  employee Employee    @relation(fields: [employeeId], references: [id])
+  lines    OrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- 発注明細 ---
+// unitType: single | case
+model OrderLine {
+  id           String @id @default(cuid())
+  orderId      String
+  productId    String
+  productName  String
+  qty          Int
+  unit         String
+  unitType     String @default("single")
+  sellingPrice Float
+  costPrice    Float
+  grossProfit  Float
+  grossMargin  Float
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// --- 新商品導入記録（評価用） ---
+model NewProductIntroduction {
+  id                    String   @id @default(cuid())
+  employeeId            String
+  customerId            String
+  customerName          String
+  productId             String
+  productName           String
+  firstOrderDate        DateTime
+  firstOrderGrossMargin Float
+  continuedMonths       Int      @default(0)
+  isSettled             Boolean  @default(false)
+  quarterKey            String
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, customerId, productId, quarterKey])
+}
+
+// --- 四半期評価 ---
+model QuarterlyEvaluation {
+  id           String @id @default(cuid())
+  employeeId   String
+  employeeName String
+  quarterKey   String
+
+  newProductCount  Int
+  newProductTarget Int
+  newProductScore  Float
+
+  avgGrossMargin   Float
+  marginTarget     Float
+  marginScore      Float
+
+  settlementRate   Float
+  settlementTarget Float
+  settlementScore  Float
+
+  totalScore       Float
+  baseCoefficient  Float
+  prevQuarterScore Float
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, quarterKey])
+}

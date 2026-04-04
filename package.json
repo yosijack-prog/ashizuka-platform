@@ -1,0 +1,24 @@
+{
+  "name": "ashizuka-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "芦塚酒店 統合プラットフォーム",
+  "scripts": {
+    "portal": "node apps/portal/node_modules/.bin/vite --root apps/portal",
+    "backend": "node backend/node_modules/.bin/tsx backend/src/index.ts",
+    "smart-unit": "node apps/smart-unit/node_modules/.bin/vite --root apps/smart-unit",
+    "customer-order": "node apps/customer-order/node_modules/.bin/vite --root apps/customer-order",
+    "alcohol-search": "node apps/alcohol-search/node_modules/.bin/vite --root apps/alcohol-search",
+    "sales-manager": "node apps/sales-manager/node_modules/.bin/vite --root apps/sales-manager",
+    "db:migrate": "node backend/node_modules/.bin/prisma migrate dev --schema backend/prisma/schema.prisma",
+    "db:studio": "node backend/node_modules/.bin/prisma studio --schema backend/prisma/schema.prisma"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

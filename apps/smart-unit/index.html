@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartUnit – 受発注・配送管理</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
+header{background:#1e40af;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.back{color:#93c5fd;font-size:13px;text-decoration:none;margin-right:8px}.back:hover{color:#fff}
+h1{font-size:20px;font-weight:700}
+.subtitle{font-size:12px;color:#93c5fd;margin-top:2px}
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:24px}
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.toolbar select,.toolbar input{padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#fff}
+.toolbar button{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600}
+.toolbar button:hover{background:#1d4ed8}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:#fff;border-radius:12px;padding:16px;text-align:center;border:1px solid #e2e8f0}
+.stat-num{font-size:28px;font-weight:700;color:#2563eb}.stat-label{font-size:12px;color:#64748b;margin-top:4px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+th{background:#f8fafc;padding:12px 16px;text-align:left;font-size:13px;color:#64748b;font-weight:600;border-bottom:1px solid #e2e8f0}
+td{padding:12px 16px;font-size:14px;border-bottom:1px solid #f1f5f9}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.pending{background:#fef3c7;color:#92400e}
+.assigned{background:#dbeafe;color:#1e40af}
+.picking{background:#e0e7ff;color:#3730a3}
+.picked{background:#d1fae5;color:#065f46}
+.in_transit{background:#fce7f3;color:#9d174d}
+.delivered{background:#dcfce7;color:#14532d}
+.btn-sm{padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600}
+.btn-next{background:#2563eb;color:#fff}.btn-next:hover{background:#1d4ed8}
+.empty{text-align:center;padding:48px;color:#94a3b8}
+.api-err{background:#fee2e2;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px}
+#loading{text-align:center;padding:48px;color:#64748b}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="http://localhost:5172">← ポータル</a>
+  <div>
+    <h1>📦 SmartUnit</h1>
+    <div class="subtitle">受発注・配送管理システム</div>
+  </div>
+</header>
+<main>
+  <div id="api-err" class="api-err" style="display:none">⚠️ APIサーバー（localhost:3001）に接続できません。バックエンドを起動してください。</div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="s-total">-</div><div class="stat-label">総発注数</div></div>
+    <div class="stat"><div class="stat-num" id="s-pending" style="color:#92400e">-</div><div class="stat-label">未配送</div></div>
+    <div class="stat"><div class="stat-num" id="s-transit" style="color:#9d174d">-</div><div class="stat-label">配送中</div></div>
+    <div class="stat"><div class="stat-num" id="s-done" style="color:#14532d">-</div><div class="stat-label">完了</div></div>
+  </div>
+
+  <div class="toolbar">
+    <select id="filter-status">
+      <option value="">全ステータス</option>
+      <option value="pending">未着手</option>
+      <option value="assigned">担当割当済</option>
+      <option value="picking">ピッキング中</option>
+      <option value="picked">ピッキング済</option>
+      <option value="in_transit">配送中</option>
+      <option value="delivered">配送完了</option>
+    </select>
+    <select id="filter-source">
+      <option value="">全ソース</option>
+      <option value="smart_unit">SmartUnit</option>
+      <option value="customer_order">顧客注文</option>
+      <option value="manual">手動</option>
+    </select>
+    <button onclick="load()">🔄 更新</button>
+  </div>
+
+  <div id="loading">読み込み中...</div>
+  <table id="tbl" style="display:none">
+    <thead>
+      <tr>
+        <th>発注日</th><th>顧客名</th><th>担当</th><th>金額</th><th>粗利率</th><th>ソース</th><th>配送状況</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" class="empty" style="display:none">発注データがありません</div>
+</main>
+
+<script>
+const API = 'http://localhost:3001';
+const STATUS_LABEL = {pending:'未着手',assigned:'担当割当',picking:'ピッキング中',picked:'ピッキング済',in_transit:'配送中',delivered:'完了'};
+const STATUS_NEXT  = {pending:'assigned',assigned:'picking',picking:'picked',picked:'in_transit',in_transit:'delivered'};
+const SOURCE_LABEL = {smart_unit:'SmartUnit',customer_order:'顧客注文',manual:'手動'};
+
+let orders = [];
+
+async function load() {
+  const status = document.getElementById('filter-status').value;
+  const source = document.getElementById('filter-source').value;
+  const params = new URLSearchParams();
+  if (status) params.set('deliveryStatus', status);
+  if (source) params.set('source', source);
+  try {
+    const res = await fetch(`${API}/api/orders?${params}`);
+    const json = await res.json();
+    orders = json.data || [];
+    document.getElementById('api-err').style.display = 'none';
+    render();
+  } catch {
+    document.getElementById('api-err').style.display = '';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('tbl').style.display = 'none';
+    document.getElementById('empty').style.display = '';
+    document.getElementById('empty').textContent = 'APIに接続できません';
+    updateStats([]);
+  }
+}
+
+function render() {
+  document.getElementById('loading').style.display = 'none';
+  updateStats(orders);
+  if (!orders.length) {
+    document.getElementById('tbl').style.display = 'none';
+    document.getElementById('empty').style.display = '';
+    document.getElementById('empty').textContent = '発注データがありません';
+    return;
+  }
+  document.getElementById('tbl').style.display = '';
+  document.getElementById('empty').style.display = 'none';
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = orders.map(o => {
+    const ds = o.deliveryStatus || 'pending';
+    const hasNext = STATUS_NEXT[ds];
+    return `<tr>
+      <td>${o.orderDate ? o.orderDate.slice(0,10) : '-'}</td>
+      <td>${o.customerName}</td>
+      <td>${o.employeeId}</td>
+      <td>¥${(o.totalAmount||0).toLocaleString()}</td>
+      <td>${((o.totalGrossMargin||0)*100).toFixed(1)}%</td>
+      <td><span class="badge">${SOURCE_LABEL[o.source]||o.source}</span></td>
+      <td><span class="badge ${ds}">${STATUS_LABEL[ds]||ds}</span></td>
+      <td>${hasNext ? `<button class="btn-sm btn-next" onclick="advance('${o.id}','${hasNext}')">→ ${STATUS_LABEL[hasNext]}</button>` : '✅'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateStats(data) {
+  document.getElementById('s-total').textContent = data.length;
+  document.getElementById('s-pending').textContent = data.filter(o=>!['in_transit','delivered'].includes(o.deliveryStatus)).length;
+  document.getElementById('s-transit').textContent = data.filter(o=>o.deliveryStatus==='in_transit').length;
+  document.getElementById('s-done').textContent = data.filter(o=>o.deliveryStatus==='delivered').length;
+}
+
+async function advance(id, nextStatus) {
+  try {
+    await fetch(`${API}/api/orders/${id}/delivery-status`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ deliveryStatus: nextStatus })
+    });
+    load();
+  } catch { alert('更新に失敗しました'); }
+}
+
+load();
+</script>
+</body>
+</html>

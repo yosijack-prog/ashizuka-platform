@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sales Manager – 営業・社員管理</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#fff7ed;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
+header{background:#c2410c;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.back{color:#fed7aa;font-size:13px;text-decoration:none;margin-right:8px}.back:hover{color:#fff}
+h1{font-size:20px;font-weight:700}.subtitle{font-size:12px;color:#fed7aa;margin-top:2px}
+.tabs-nav{background:#fff;border-bottom:1px solid #fed7aa;display:flex;padding:0 24px}
+.nav-tab{padding:14px 20px;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.nav-tab.active{color:#ea580c;border-bottom-color:#ea580c}
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:24px}
+.api-err{background:#fee2e2;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
+/* 社員カード */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.emp-card{background:#fff;border-radius:14px;padding:20px;border:1.5px solid #fed7aa;transition:all .2s}
+.emp-card:hover{border-color:#ea580c;box-shadow:0 6px 20px rgba(234,88,12,.1)}
+.emp-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.emp-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.emp-name{font-size:17px;font-weight:700}
+.emp-role{font-size:12px;color:#94a3b8;margin-top:2px}
+.emp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.emp-stat{background:#fff7ed;border-radius:8px;padding:10px;text-align:center}
+.emp-stat-num{font-size:20px;font-weight:800;color:#ea580c}
+.emp-stat-label{font-size:11px;color:#64748b;margin-top:2px}
+/* 発注サマリー */
+.order-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+th{background:#fff7ed;padding:12px 16px;text-align:left;font-size:13px;color:#92400e;font-weight:700;border-bottom:1px solid #fed7aa}
+td{padding:12px 16px;font-size:14px;border-bottom:1px solid #fef3c7}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fff7ed}
+.score-bar{width:100%;height:8px;background:#fee2e2;border-radius:4px;overflow:hidden}
+.score-fill{height:100%;background:linear-gradient(90deg,#f97316,#ea580c);border-radius:4px}
+.score-num{font-size:13px;font-weight:700;color:#ea580c}
+/* 四半期評価 */
+.eval-card{background:#fff;border-radius:14px;padding:20px;border:1.5px solid #fed7aa;margin-bottom:16px}
+.eval-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.eval-emp{font-size:17px;font-weight:700}
+.eval-quarter{font-size:13px;color:#94a3b8}
+.eval-total{font-size:28px;font-weight:800;color:#ea580c}
+.eval-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:14px}
+.eval-label{width:120px;color:#64748b;flex-shrink:0}
+.eval-bar-wrap{flex:1}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.role-driver{background:#dbeafe;color:#1e40af}
+.role-sales{background:#dcfce7;color:#14532d}
+.role-warehouse{background:#fef3c7;color:#92400e}
+.role-manager{background:#fce7f3;color:#9d174d}
+.toolbar{display:flex;gap:12px;margin-bottom:20px;align-items:center}
+.toolbar select{padding:8px 12px;border:1px solid #fed7aa;border-radius:8px;font-size:14px;background:#fff}
+.quarter-sel{padding:8px 12px;border:1px solid #fed7aa;border-radius:8px;font-size:14px;background:#fff}
+.section{display:none}.section.active{display:block}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="http://localhost:5172">← ポータル</a>
+  <div><h1>📊 Sales Manager</h1><div class="subtitle">営業・社員管理システム</div></div>
+</header>
+
+<div class="tabs-nav">
+  <div class="nav-tab active" onclick="switchTab(this,'employees')">👥 社員一覧</div>
+  <div class="nav-tab" onclick="switchTab(this,'orders')">📋 発注サマリー</div>
+  <div class="nav-tab" onclick="switchTab(this,'evaluations')">⭐ 四半期評価</div>
+</div>
+
+<main>
+  <div class="api-err" id="api-err">⚠️ APIサーバー（localhost:3001）に接続できません。バックエンドを起動してください。</div>
+
+  <!-- 社員一覧 -->
+  <div class="section active" id="sec-employees">
+    <div class="emp-grid" id="emp-grid"><div style="color:#94a3b8;padding:32px">読み込み中...</div></div>
+  </div>
+
+  <!-- 発注サマリー -->
+  <div class="section" id="sec-orders">
+    <div class="toolbar">
+      <select id="ord-emp" onchange="loadOrders()"><option value="">全社員</option></select>
+      <select id="ord-period" onchange="loadOrders()">
+        <option value="">全期間</option>
+        <option value="2026-01-01,2026-03-31">2026年Q1</option>
+        <option value="2026-04-01,2026-06-30">2026年Q2</option>
+        <option value="2025-10-01,2025-12-31">2025年Q4</option>
+      </select>
+    </div>
+    <table class="order-table">
+      <thead><tr><th>発注日</th><th>顧客</th><th>担当</th><th>金額</th><th>粗利率</th><th>ソース</th></tr></thead>
+      <tbody id="ord-tbody"><tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">データを取得中...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- 四半期評価 -->
+  <div class="section" id="sec-evaluations">
+    <div class="toolbar">
+      <select id="eval-quarter" class="quarter-sel" onchange="loadEvals()">
+        <option value="2026-Q1">2026年Q1</option>
+        <option value="2026-Q2" selected>2026年Q2</option>
+        <option value="2025-Q4">2025年Q4</option>
+      </select>
+    </div>
+    <div id="eval-list"><div style="color:#94a3b8;padding:32px;text-align:center">四半期評価データがありません</div></div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:3001';
+const ROLE_LABELS = {driver:'配送',sales:'営業',warehouse:'倉庫',manager:'管理職'};
+const ROLE_CLASS = {driver:'role-driver',sales:'role-sales',warehouse:'role-warehouse',manager:'role-manager'};
+const SOURCE_LABELS = {smart_unit:'SmartUnit',customer_order:'顧客注文',manual:'手動'};
+let employees = [];
+
+async function init() {
+  try {
+    const res = await fetch(`${API}/api/employees`);
+    employees = (await res.json()).data || [];
+    document.getElementById('api-err').style.display = 'none';
+    renderEmployees();
+    populateEmpSelects();
+    loadOrders();
+    loadEvals();
+  } catch {
+    document.getElementById('api-err').style.display = '';
+    document.getElementById('emp-grid').innerHTML = '<div style="color:#94a3b8;padding:32px">APIに接続できません</div>';
+  }
+}
+
+function renderEmployees() {
+  const grid = document.getElementById('emp-grid');
+  if (!employees.length) { grid.innerHTML = '<div style="color:#94a3b8;padding:32px">社員データがありません</div>'; return; }
+  grid.innerHTML = employees.map(e => `
+    <div class="emp-card">
+      <div class="emp-header">
+        <div class="emp-avatar" style="background:${e.color||'#ea580c'}">${e.avatar||e.name[0]}</div>
+        <div>
+          <div class="emp-name">${e.name}</div>
+          <span class="badge ${ROLE_CLASS[e.role]||''}">${ROLE_LABELS[e.role]||e.role}</span>
+        </div>
+      </div>
+      <div class="emp-stats">
+        <div class="emp-stat"><div class="emp-stat-num">-</div><div class="emp-stat-label">発注件数</div></div>
+        <div class="emp-stat"><div class="emp-stat-num">-</div><div class="emp-stat-label">担当顧客</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function populateEmpSelects() {
+  const sel = document.getElementById('ord-emp');
+  employees.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e.id; o.textContent = e.name;
+    sel.appendChild(o);
+  });
+}
+
+async function loadOrders() {
+  const empId = document.getElementById('ord-emp').value;
+  const period = document.getElementById('ord-period').value;
+  const params = new URLSearchParams();
+  if (empId) params.set('employeeId', empId);
+  if (period) { const [from,to] = period.split(','); params.set('from',from); params.set('to',to); }
+  const tbody = document.getElementById('ord-tbody');
+  try {
+    const res = await fetch(`${API}/api/orders?${params}`);
+    const orders = (await res.json()).data || [];
+    if (!orders.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">発注データがありません</td></tr>'; return; }
+    tbody.innerHTML = orders.map(o => {
+      const emp = employees.find(e => e.id === o.employeeId);
+      return `<tr>
+        <td>${(o.orderDate||'').slice(0,10)}</td>
+        <td>${o.customerName}</td>
+        <td>${emp ? emp.name : o.employeeId}</td>
+        <td>¥${(o.totalAmount||0).toLocaleString()}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="score-bar" style="width:80px"><div class="score-fill" style="width:${((o.totalGrossMargin||0)*100).toFixed(0)}%"></div></div>
+            <span class="score-num">${((o.totalGrossMargin||0)*100).toFixed(1)}%</span>
+          </div>
+        </td>
+        <td><span class="badge" style="background:#fff7ed;color:#c2410c">${SOURCE_LABELS[o.source]||o.source}</span></td>
+      </tr>`;
+    }).join('');
+  } catch { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#991b1b;padding:24px">データ取得に失敗</td></tr>'; }
+}
+
+async function loadEvals() {
+  const qk = document.getElementById('eval-quarter').value;
+  const el = document.getElementById('eval-list');
+  try {
+    const res = await fetch(`${API}/api/evaluations?quarterKey=${qk}`);
+    const evals = (await res.json()).data || [];
+    if (!evals.length) { el.innerHTML = '<div style="color:#94a3b8;padding:32px;text-align:center">この四半期の評価データがありません</div>'; return; }
+    el.innerHTML = evals.map(ev => `
+      <div class="eval-card">
+        <div class="eval-header">
+          <div>
+            <div class="eval-emp">${ev.employeeName}</div>
+            <div class="eval-quarter">${ev.quarterKey}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">総合スコア</div>
+            <div class="eval-total">${(ev.totalScore||0).toFixed(1)}</div>
+          </div>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">新商品開拓 (33%)</span>
+          <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(ev.newProductScore||0,100)}%"></div></div></div>
+          <span class="score-num" style="width:36px;text-align:right">${(ev.newProductScore||0).toFixed(0)}</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">販売利益率 (33%)</span>
+          <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(ev.marginScore||0,100)}%"></div></div></div>
+          <span class="score-num" style="width:36px;text-align:right">${(ev.marginScore||0).toFixed(0)}</span>
+        </div>
+        <div class="eval-row">
+          <span class="eval-label">定着率 (34%)</span>
+          <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(ev.settlementScore||0,100)}%"></div></div></div>
+          <span class="score-num" style="width:36px;text-align:right">${(ev.settlementScore||0).toFixed(0)}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch { el.innerHTML = '<div style="color:#991b1b;padding:32px;text-align:center">データ取得に失敗</div>'; }
+}
+
+function switchTab(el, section) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`sec-${section}`).classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>

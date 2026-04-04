@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>芦塚酒店 統合プラットフォーム</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #f8fafc;
+      font-family: 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #1e293b;
+      color: #fff;
+      padding: 24px 32px;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .logo { font-size: 40px; }
+    h1 { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }
+    .subtitle { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+    main {
+      flex: 1;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .lead {
+      text-align: center;
+      color: #64748b;
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px;
+      border-radius: 16px;
+      border: 1.5px solid;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    }
+    .card-icon { font-size: 48px; margin-bottom: 12px; }
+    .card-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .card-desc { font-size: 13px; color: #64748b; text-align: center; margin-bottom: 16px; }
+    .card-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      font-family: monospace;
+    }
+    footer {
+      padding: 16px 24px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+      font-size: 13px;
+      color: #64748b;
+    }
+    #api-status { display: inline-block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <span class="logo">🍾</span>
+      <div>
+        <h1>芦塚酒店</h1>
+        <p class="subtitle">統合プラットフォーム</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <p class="lead">システムを選択してください</p>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>
+    <span id="api-status">🟡 API サーバー確認中... | localhost:3001</span>
+  </footer>
+
+  <script>
+    const APPS = [
+      {
+        name: 'SmartUnit',
+        url: 'http://localhost:5173',
+        desc: '受発注・配送管理',
+        icon: '📦',
+        color: '#2563eb',
+        bg: '#eff6ff',
+        border: '#bfdbfe',
+      },
+      {
+        name: 'Customer Order',
+        url: 'http://localhost:5174',
+        desc: '顧客向け注文アプリ',
+        icon: '🛒',
+        color: '#16a34a',
+        bg: '#f0fdf4',
+        border: '#bbf7d0',
+      },
+      {
+        name: 'Alcohol Search',
+        url: 'http://localhost:5175',
+        desc: 'おいしいお酒検索システム',
+        icon: '🍶',
+        color: '#9333ea',
+        bg: '#faf5ff',
+        border: '#e9d5ff',
+      },
+      {
+        name: 'Sales Manager',
+        url: 'http://localhost:5176',
+        desc: '営業・社員管理システム',
+        icon: '📊',
+        color: '#ea580c',
+        bg: '#fff7ed',
+        border: '#fed7aa',
+      },
+    ];
+
+    const grid = document.getElementById('grid');
+    APPS.forEach(app => {
+      const a = document.createElement('a');
+      a.href = app.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.className = 'card';
+      a.style.cssText = `background:${app.bg};border-color:${app.border};`;
+      a.innerHTML = `
+        <span class="card-icon">${app.icon}</span>
+        <span class="card-name" style="color:${app.color}">${app.name}</span>
+        <span class="card-desc">${app.desc}</span>
+        <span class="card-badge" style="color:${app.color};border-color:${app.border};">
+          ${app.url.replace('http://', '')} →
+        </span>
+      `;
+      grid.appendChild(a);
+    });
+
+    // APIステータス確認
+    const statusEl = document.getElementById('api-status');
+    fetch('http://localhost:3001/health')
+      .then(r => r.json())
+      .then(() => {
+        statusEl.textContent = '🟢 API サーバー 接続中 | localhost:3001';
+      })
+      .catch(() => {
+        statusEl.textContent = '🔴 API サーバー 未起動 | localhost:3001';
+      });
+  </script>
+</body>
+</html>

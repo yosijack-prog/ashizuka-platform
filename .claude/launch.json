@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ashizuka-portal",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "portal", "dev", "--", "--port", "5200"],
+      "port": 5200
+    }
+  ]
+}

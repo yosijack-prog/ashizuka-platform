@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Customer Order – 顧客注文アプリ</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0fdf4;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
+header{background:#15803d;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.back{color:#86efac;font-size:13px;text-decoration:none;margin-right:8px}.back:hover{color:#fff}
+h1{font-size:20px;font-weight:700}.subtitle{font-size:12px;color:#86efac;margin-top:2px}
+main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr 320px;gap:24px}
+@media(max-width:768px){main{grid-template-columns:1fr}}
+.panel{background:#fff;border-radius:12px;padding:20px;border:1px solid #d1fae5;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.panel h2{font-size:16px;font-weight:700;color:#15803d;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #d1fae5}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;padding:9px 12px;border:1px solid #d1fae5;border-radius:8px;font-size:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tab{padding:5px 12px;border-radius:999px;border:1px solid #d1fae5;font-size:13px;cursor:pointer;background:#f0fdf4;transition:all .15s}
+.tab.active,.tab:hover{background:#15803d;color:#fff;border-color:#15803d}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;max-height:calc(100vh - 300px);overflow-y:auto}
+.product-card{border:1px solid #d1fae5;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;background:#f0fdf4}
+.product-card:hover{border-color:#15803d;background:#dcfce7;transform:translateY(-2px)}
+.product-genre{font-size:11px;color:#16a34a;font-weight:600;margin-bottom:4px}
+.product-name{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.product-price{font-size:13px;color:#15803d;font-weight:600}
+.product-unit{font-size:11px;color:#64748b}
+.cart-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px}
+.cart-item:last-child{border-bottom:none}
+.cart-item-name{flex:1;font-size:13px;font-weight:600}
+.cart-item-price{color:#15803d;font-weight:700;white-space:nowrap}
+.qty-ctrl{display:flex;align-items:center;gap:6px}
+.qty-btn{width:24px;height:24px;border-radius:50%;border:1px solid #d1fae5;background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.qty-btn:hover{background:#15803d;color:#fff;border-color:#15803d}
+.cart-total{padding:14px 0 10px;font-size:16px;font-weight:700;text-align:right;color:#15803d;border-top:2px solid #d1fae5;margin-top:8px}
+.order-btn{width:100%;padding:12px;background:#15803d;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px}
+.order-btn:hover{background:#14532d}
+.order-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.customer-sel{width:100%;padding:9px 12px;border:1px solid #d1fae5;border-radius:8px;font-size:14px;margin-bottom:16px}
+.empty-cart{text-align:center;color:#94a3b8;padding:24px;font-size:14px}
+.api-err{background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;grid-column:1/-1}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#15803d;color:#fff;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="http://localhost:5172">← ポータル</a>
+  <div><h1>🛒 Customer Order</h1><div class="subtitle">顧客向け注文アプリ</div></div>
+</header>
+<main>
+  <div id="api-err" class="api-err" style="display:none">⚠️ APIサーバー（localhost:3001）に接続できません。</div>
+
+  <!-- 商品一覧 -->
+  <div class="panel">
+    <h2>🍾 商品一覧</h2>
+    <div class="search-bar">
+      <input id="q" type="text" placeholder="商品名で検索..." oninput="filterProducts()">
+    </div>
+    <div class="tabs" id="genre-tabs">
+      <span class="tab active" data-genre="" onclick="setGenre(this,'')">すべて</span>
+      <span class="tab" data-genre="ビール" onclick="setGenre(this,'ビール')">🍺 ビール</span>
+      <span class="tab" data-genre="日本酒" onclick="setGenre(this,'日本酒')">🍶 日本酒</span>
+      <span class="tab" data-genre="焼酎" onclick="setGenre(this,'焼酎')">🥃 焼酎</span>
+      <span class="tab" data-genre="ワイン" onclick="setGenre(this,'ワイン')">🍷 ワイン</span>
+      <span class="tab" data-genre="ガス" onclick="setGenre(this,'ガス')">💨 ガス</span>
+    </div>
+    <div class="products" id="products"><div style="text-align:center;padding:32px;color:#94a3b8">読み込み中...</div></div>
+  </div>
+
+  <!-- カート -->
+  <div>
+    <div class="panel" style="margin-bottom:16px">
+      <h2>👤 顧客選択</h2>
+      <select id="customer-sel" class="customer-sel">
+        <option value="">顧客を選択...</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h2>🛒 カート</h2>
+      <div id="cart-items"><div class="empty-cart">商品を追加してください</div></div>
+      <div class="cart-total" id="cart-total" style="display:none">合計: ¥<span id="total-amt">0</span></div>
+      <button class="order-btn" id="order-btn" onclick="placeOrder()" disabled>注文を確定する</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001';
+let allProducts = [], cart = [], customers = [], selectedCustomer = null, selectedGenre = '';
+
+async function init() {
+  try {
+    const [pRes, cRes] = await Promise.all([
+      fetch(`${API}/api/products`), fetch(`${API}/api/customers`)
+    ]);
+    allProducts = (await pRes.json()).data || [];
+    customers = (await cRes.json()).data || [];
+    document.getElementById('api-err').style.display = 'none';
+    const sel = document.getElementById('customer-sel');
+    customers.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = `${c.name}（${c.area}）`;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => {
+      selectedCustomer = customers.find(c => c.id === sel.value) || null;
+      renderOrderBtn();
+    });
+    filterProducts();
+  } catch {
+    document.getElementById('api-err').style.display = '';
+    renderProducts([]);
+  }
+}
+
+function setGenre(el, genre) {
+  selectedGenre = genre;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  filterProducts();
+}
+
+function filterProducts() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const filtered = allProducts.filter(p =>
+    (!selectedGenre || p.genre === selectedGenre) &&
+    (!q || p.name.toLowerCase().includes(q))
+  );
+  renderProducts(filtered);
+}
+
+function renderProducts(list) {
+  const el = document.getElementById('products');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8">商品がありません</div>'; return; }
+  el.innerHTML = list.map(p => `
+    <div class="product-card" onclick="addToCart('${p.id}')">
+      <div class="product-genre">${p.genre}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-price">¥${(p.costPrice||0).toLocaleString()} <span class="product-unit">/${p.unit}</span></div>
+    </div>
+  `).join('');
+}
+
+function addToCart(productId) {
+  const p = allProducts.find(x => x.id === productId);
+  if (!p) return;
+  const existing = cart.find(x => x.productId === productId);
+  if (existing) existing.qty++;
+  else cart.push({ productId, productName: p.name, qty: 1, unit: p.unit, unitType: 'single', sellingPrice: p.costPrice, costPrice: p.costPrice, grossProfit: 0, grossMargin: 0 });
+  renderCart();
+}
+
+function changeQty(productId, delta) {
+  const idx = cart.findIndex(x => x.productId === productId);
+  if (idx < 0) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  renderCart();
+}
+
+function renderCart() {
+  const el = document.getElementById('cart-items');
+  if (!cart.length) { el.innerHTML = '<div class="empty-cart">商品を追加してください</div>'; document.getElementById('cart-total').style.display='none'; renderOrderBtn(); return; }
+  const total = cart.reduce((s,x) => s + x.sellingPrice * x.qty, 0);
+  el.innerHTML = cart.map(x => `
+    <div class="cart-item">
+      <div class="cart-item-name">${x.productName}</div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${x.productId}',-1)">−</button>
+        <span>${x.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${x.productId}',1)">＋</button>
+      </div>
+      <div class="cart-item-price">¥${(x.sellingPrice*x.qty).toLocaleString()}</div>
+    </div>
+  `).join('');
+  document.getElementById('total-amt').textContent = total.toLocaleString();
+  document.getElementById('cart-total').style.display = '';
+  renderOrderBtn();
+}
+
+function renderOrderBtn() {
+  document.getElementById('order-btn').disabled = !selectedCustomer || cart.length === 0;
+}
+
+async function placeOrder() {
+  if (!selectedCustomer || !cart.length) return;
+  const total = cart.reduce((s,x) => s + x.sellingPrice * x.qty, 0);
+  const body = {
+    customerId: selectedCustomer.id, customerName: selectedCustomer.name,
+    employeeId: selectedCustomer.assignedEmployeeId || 'unknown',
+    orderDate: new Date().toISOString(), lines: cart,
+    totalAmount: total, totalGrossProfit: 0, totalGrossMargin: 0,
+    isNewProduct: false, source: 'customer_order'
+  };
+  try {
+    await fetch(`${API}/api/orders`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    cart = [];
+    renderCart();
+    showToast('✅ 注文が完了しました！');
+  } catch { showToast('❌ 注文に失敗しました'); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+init();
+</script>
+</body>
+</html>
