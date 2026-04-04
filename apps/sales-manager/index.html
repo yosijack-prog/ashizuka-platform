@@ -251,7 +251,8 @@ function renderEvals(evals, qk) {
     const emp         = employees.find(e => e.id === (ev.employeeId || ev.id));
     const color       = emp?.color || ev.color || '#94a3b8';
     const avatar      = emp?.avatar || ev.avatar || name[0];
-    const bonus       = total>=90?'×1.20':total>=80?'×1.10':total>=70?'×1.05':'×1.00';
+    const bonus       = bonusLabel(total);
+    const totalColor  = total >= 100 ? '#f59e0b' : '#ea580c';
     return `
     <div class="eval-card">
       <div class="eval-header">
@@ -263,27 +264,27 @@ function renderEvals(evals, qk) {
           </div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:2px">総合スコア</div>
-          <div class="eval-total">${total.toFixed(0)}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:2px">総合スコア <span style="font-size:10px">（100=目標）</span></div>
+          <div class="eval-total" style="color:${totalColor}">${total.toFixed(0)}</div>
           <div style="font-size:12px;font-weight:700;color:${diffColor}">${diffStr} 前期比</div>
         </div>
       </div>
       <div class="eval-row">
         <span class="eval-label">🆕 新商品開拓 (33%)</span>
-        <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(newScore,100)}%"></div></div></div>
-        <span class="score-num" style="width:36px;text-align:right">${newScore.toFixed(0)}</span>
+        <div class="eval-bar-wrap">${scoreBar(newScore)}</div>
+        <span class="score-num" style="width:36px;text-align:right;color:${newScore>=100?'#f59e0b':'#ea580c'}">${newScore.toFixed(0)}</span>
       </div>
       <div style="font-size:11px;color:#94a3b8;margin:-6px 0 10px 122px">${newCount}件 ／ 目標 ${newTarget}件</div>
       <div class="eval-row">
         <span class="eval-label">💴 販売利益率 (33%)</span>
-        <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(marginScore,100)}%"></div></div></div>
-        <span class="score-num" style="width:36px;text-align:right">${marginScore.toFixed(0)}</span>
+        <div class="eval-bar-wrap">${scoreBar(marginScore)}</div>
+        <span class="score-num" style="width:36px;text-align:right;color:${marginScore>=100?'#f59e0b':'#ea580c'}">${marginScore.toFixed(0)}</span>
       </div>
       <div style="font-size:11px;color:#94a3b8;margin:-6px 0 10px 122px">${margin}% ／ 目標 ${marginTgt}%</div>
       <div class="eval-row">
         <span class="eval-label">📌 定着率 (34%)</span>
-        <div class="eval-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:${Math.min(settScore,100)}%"></div></div></div>
-        <span class="score-num" style="width:36px;text-align:right">${settScore.toFixed(0)}</span>
+        <div class="eval-bar-wrap">${scoreBar(settScore)}</div>
+        <span class="score-num" style="width:36px;text-align:right;color:${settScore>=100?'#f59e0b':'#ea580c'}">${settScore.toFixed(0)}</span>
       </div>
       <div style="font-size:11px;color:#94a3b8;margin:-6px 0 0 122px">${settRate}% ／ 目標 ${settTgt}%</div>
     </div>`;
@@ -302,25 +303,50 @@ async function loadEvals() {
 }
 
 // ---- モックデータ（API未接続時のフォールバック） ----
+// スコア = 実績 ÷ 目標 × 100（100=達成、100超=超過達成）
 const MOCK_EVALS = {
   '2026-Q1': [
-    { id:'emp_tan', name:'谷口 亮介',   role:'配送', color:'#3b82f6', avatar:'谷', total:100, newProductCount:9,  newProductTarget:7,  newProductScore:100, avgGrossMargin:32, marginTarget:28, marginScore:100, settlementRate:78, settlementTarget:70, settlementScore:100, prevScore:92  },
-    { id:'emp_oku', name:'奥田 玲晃',   role:'配送', color:'#22c55e', avatar:'奥', total:90,  newProductCount:7,  newProductTarget:7,  newProductScore:88,  avgGrossMargin:30, marginTarget:28, marginScore:94,  settlementRate:71, settlementTarget:70, settlementScore:88,  prevScore:85  },
-    { id:'emp_abi', name:'阿比留 徹',   role:'配送', color:'#f59e0b', avatar:'阿', total:85,  newProductCount:6,  newProductTarget:7,  newProductScore:75,  avgGrossMargin:29, marginTarget:28, marginScore:88,  settlementRate:75, settlementTarget:70, settlementScore:92,  prevScore:80  },
-    { id:'emp_aka', name:'赤川 秀敏',   role:'配送', color:'#ef4444', avatar:'赤', total:68,  newProductCount:4,  newProductTarget:7,  newProductScore:58,  avgGrossMargin:27, marginTarget:28, marginScore:75,  settlementRate:60, settlementTarget:70, settlementScore:70,  prevScore:65  },
-    { id:'emp_ima', name:'今村 淳子',   role:'配送', color:'#a855f7', avatar:'今', total:63,  newProductCount:3,  newProductTarget:6,  newProductScore:55,  avgGrossMargin:26, marginTarget:28, marginScore:70,  settlementRate:55, settlementTarget:70, settlementScore:65,  prevScore:60  },
-    { id:'emp_kaw', name:'川原 未香',   role:'配送', color:'#ec4899', avatar:'川', total:56,  newProductCount:2,  newProductTarget:6,  newProductScore:45,  avgGrossMargin:25, marginTarget:28, marginScore:65,  settlementRate:50, settlementTarget:70, settlementScore:58,  prevScore:52  },
-    { id:'emp_ash', name:'芦塚 義幸',   role:'管理職',color:'#06b6d4', avatar:'芦', total:51,  newProductCount:2,  newProductTarget:6,  newProductScore:42,  avgGrossMargin:24, marginTarget:28, marginScore:60,  settlementRate:45, settlementTarget:70, settlementScore:52,  prevScore:48  },
-    { id:'emp_sak', name:'酒井 さやか', role:'営業', color:'#84cc16', avatar:'酒', total:45,  newProductCount:1,  newProductTarget:5,  newProductScore:35,  avgGrossMargin:23, marginTarget:28, marginScore:55,  settlementRate:40, settlementTarget:70, settlementScore:45,  prevScore:42  },
+    { id:'emp_tan', name:'谷口 亮介',   role:'配送', color:'#3b82f6', avatar:'谷', total:118, newProductCount:9,  newProductTarget:7,  newProductScore:129, avgGrossMargin:32, marginTarget:28, marginScore:114, settlementRate:78, settlementTarget:70, settlementScore:111, prevScore:110 },
+    { id:'emp_oku', name:'奥田 玲晃',   role:'配送', color:'#22c55e', avatar:'奥', total:103, newProductCount:7,  newProductTarget:7,  newProductScore:100, avgGrossMargin:30, marginTarget:28, marginScore:107, settlementRate:71, settlementTarget:70, settlementScore:101, prevScore:95  },
+    { id:'emp_abi', name:'阿比留 徹',   role:'配送', color:'#f59e0b', avatar:'阿', total:99,  newProductCount:6,  newProductTarget:7,  newProductScore:86,  avgGrossMargin:29, marginTarget:28, marginScore:104, settlementRate:75, settlementTarget:70, settlementScore:107, prevScore:92  },
+    { id:'emp_aka', name:'赤川 秀敏',   role:'配送', color:'#ef4444', avatar:'赤', total:80,  newProductCount:4,  newProductTarget:7,  newProductScore:57,  avgGrossMargin:27, marginTarget:28, marginScore:96,  settlementRate:60, settlementTarget:70, settlementScore:86,  prevScore:75  },
+    { id:'emp_ima', name:'今村 淳子',   role:'配送', color:'#a855f7', avatar:'今', total:74,  newProductCount:3,  newProductTarget:6,  newProductScore:50,  avgGrossMargin:26, marginTarget:28, marginScore:93,  settlementRate:55, settlementTarget:70, settlementScore:79,  prevScore:70  },
+    { id:'emp_kaw', name:'川原 未香',   role:'配送', color:'#ec4899', avatar:'川', total:64,  newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:25, marginTarget:28, marginScore:89,  settlementRate:50, settlementTarget:70, settlementScore:71,  prevScore:60  },
+    { id:'emp_ash', name:'芦塚 義幸',   role:'管理職',color:'#06b6d4', avatar:'芦', total:61,  newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:24, marginTarget:28, marginScore:86,  settlementRate:45, settlementTarget:70, settlementScore:64,  prevScore:55  },
+    { id:'emp_sak', name:'酒井 さやか', role:'営業', color:'#84cc16', avatar:'酒', total:53,  newProductCount:1,  newProductTarget:5,  newProductScore:20,  avgGrossMargin:23, marginTarget:28, marginScore:82,  settlementRate:40, settlementTarget:70, settlementScore:57,  prevScore:50  },
   ],
 };
+
+// 賞与倍率: 100=達成(×1.10)、120超=大幅超過(×1.30)
+function bonusLabel(score) {
+  if (score >= 120) return '×1.30';
+  if (score >= 110) return '×1.20';
+  if (score >= 100) return '×1.10';
+  if (score >= 85)  return '×1.05';
+  return '×1.00';
+}
+
+// スコアバー（100点に基準線、超過分は金色）
+const BAR_MAX = 130;
+function scoreBar(score) {
+  const pct      = Math.min(score, BAR_MAX) / BAR_MAX * 100;
+  const markPct  = (100 / BAR_MAX * 100).toFixed(1);
+  const isOver   = score >= 100;
+  const fill     = isOver
+    ? 'linear-gradient(90deg,#f97316,#fbbf24)'
+    : 'linear-gradient(90deg,#f97316,#ea580c)';
+  return `<div style="position:relative;height:8px;background:#fef3c7;border-radius:4px;overflow:visible;flex:1">
+    <div style="height:100%;width:${pct.toFixed(1)}%;background:${fill};border-radius:4px;transition:width .6s ease;max-width:100%"></div>
+    <div style="position:absolute;top:-3px;left:${markPct}%;width:2px;height:14px;background:#475569;border-radius:1px" title="目標100点"></div>
+  </div>`;
+}
 
 const MOCK_RANKING = MOCK_EVALS['2026-Q1']
   .slice().sort((a,b)=>b.total-a.total)
   .map((e,i)=>({
     rank:i+1, id:e.id, name:e.name, role:e.role, color:e.color, avatar:e.avatar,
     score:e.total, newProduct:e.newProductCount, margin:e.avgGrossMargin, settle:e.settlementRate,
-    bonus: e.total>=90?'×1.20':e.total>=80?'×1.10':e.total>=70?'×1.05':'×1.00',
+    bonus: bonusLabel(e.total),
   }));
 
 function renderRanking(data) {
@@ -343,8 +369,8 @@ function renderRanking(data) {
       ${data.map(e => {
         const medalClass = e.rank===1?'rank-1':e.rank===2?'rank-2':e.rank===3?'rank-3':'rank-other';
         const medalText  = e.rank===1?'🥇':e.rank===2?'🥈':e.rank===3?'🥉':e.rank;
-        const fillPct    = Math.round((e.score/100)*100);
-        const fillColor  = e.rank===1?'linear-gradient(90deg,#f59e0b,#fbbf24)':e.rank<=3?'linear-gradient(90deg,#ea580c,#f97316)':'linear-gradient(90deg,#94a3b8,#cbd5e1)';
+        const fillPct    = Math.min(Math.round(e.score / BAR_MAX * 100), 100);
+        const fillColor  = e.score>=100?'linear-gradient(90deg,#f59e0b,#fbbf24)':e.rank<=3?'linear-gradient(90deg,#ea580c,#f97316)':'linear-gradient(90deg,#94a3b8,#cbd5e1)';
         const cardClass  = e.rank===1?' rank-top':'';
         return `
         <div class="rank-card${cardClass}">
@@ -384,7 +410,7 @@ async function loadRanking() {
           score: Math.round(e.totalScore),
           newProduct: e.newProductCount, margin: Math.round(e.avgGrossMargin),
           settle: Math.round(e.settlementRate),
-          bonus: e.totalScore>=90?'×1.20':e.totalScore>=80?'×1.10':e.totalScore>=70?'×1.05':'×1.00',
+          bonus: bonusLabel(Math.round(e.totalScore)),
         }));
       // アバター・カラーを社員データで補完
       data.forEach(d => {
