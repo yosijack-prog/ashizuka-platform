@@ -2,308 +2,356 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sales Manager – 営業・社員管理</title>
+<title>Sales Manager – 芦塚酒店 経営管理</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#fff7ed;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
-header{background:#c2410c;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
-.back{color:#fed7aa;font-size:13px;text-decoration:none;margin-right:8px}.back:hover{color:#fff}
-h1{font-size:20px;font-weight:700}.subtitle{font-size:12px;color:#fed7aa;margin-top:2px}
-.tabs-nav{background:#fff;border-bottom:1px solid #fed7aa;display:flex;padding:0 24px}
-.nav-tab{padding:14px 20px;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
-.nav-tab.active{color:#ea580c;border-bottom-color:#ea580c}
-main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:24px}
-.api-err{background:#fee2e2;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
-/* 社員カード */
-.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-.emp-card{background:#fff;border-radius:14px;padding:20px;border:1.5px solid #fed7aa;transition:all .2s}
-.emp-card:hover{border-color:#ea580c;box-shadow:0 6px 20px rgba(234,88,12,.1)}
-.emp-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.emp-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
-.emp-name{font-size:17px;font-weight:700}
-.emp-role{font-size:12px;color:#94a3b8;margin-top:2px}
-.emp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.emp-stat{background:#fff7ed;border-radius:8px;padding:10px;text-align:center}
-.emp-stat-num{font-size:20px;font-weight:800;color:#ea580c}
-.emp-stat-label{font-size:11px;color:#64748b;margin-top:2px}
-/* 発注サマリー */
-.order-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-th{background:#fff7ed;padding:12px 16px;text-align:left;font-size:13px;color:#92400e;font-weight:700;border-bottom:1px solid #fed7aa}
-td{padding:12px 16px;font-size:14px;border-bottom:1px solid #fef3c7}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fff7ed}
-.score-bar{width:100%;height:8px;background:#fee2e2;border-radius:4px;overflow:hidden}
-.score-fill{height:100%;background:linear-gradient(90deg,#f97316,#ea580c);border-radius:4px}
-.score-num{font-size:13px;font-weight:700;color:#ea580c}
-/* 四半期評価 */
-.eval-card{background:#fff;border-radius:14px;padding:20px;border:1.5px solid #fed7aa;margin-bottom:16px}
-.eval-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.eval-emp{font-size:17px;font-weight:700}
-.eval-quarter{font-size:13px;color:#94a3b8}
-.eval-total{font-size:28px;font-weight:800;color:#ea580c}
-.eval-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:14px}
-.eval-label{width:120px;color:#64748b;flex-shrink:0}
-.eval-bar-wrap{flex:1}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
-.role-driver{background:#dbeafe;color:#1e40af}
-.role-sales{background:#dcfce7;color:#14532d}
-.role-warehouse{background:#fef3c7;color:#92400e}
-.role-manager{background:#fce7f3;color:#9d174d}
-.toolbar{display:flex;gap:12px;margin-bottom:20px;align-items:center}
-.toolbar select{padding:8px 12px;border:1px solid #fed7aa;border-radius:8px;font-size:14px;background:#fff}
-.quarter-sel{padding:8px 12px;border:1px solid #fed7aa;border-radius:8px;font-size:14px;background:#fff}
-.section{display:none}.section.active{display:block}
-/* ランキング */
-.ranking-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.ranking-title{font-size:18px;font-weight:800;color:#1e293b}
-.ranking-period{font-size:13px;color:#94a3b8}
-.ranking-list{display:flex;flex-direction:column;gap:10px}
-.rank-card{background:#fff;border-radius:14px;padding:16px 20px;border:1.5px solid #fed7aa;display:flex;align-items:center;gap:14px;transition:all .2s}
-.rank-card:hover{border-color:#ea580c;box-shadow:0 4px 16px rgba(234,88,12,.1)}
-.rank-medal{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0}
-.rank-1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff}
-.rank-2{background:linear-gradient(135deg,#94a3b8,#64748b);color:#fff}
-.rank-3{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
-.rank-other{background:#fff7ed;color:#c2410c;font-size:14px}
-.rank-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0}
-.rank-info{flex:1;min-width:0}
-.rank-name{font-size:15px;font-weight:700;color:#1e293b}
-.rank-role{font-size:11px;color:#94a3b8;margin-top:1px}
-.rank-score-wrap{text-align:right;flex-shrink:0}
-.rank-score{font-size:26px;font-weight:900;color:#ea580c;line-height:1}
-.rank-score-label{font-size:10px;color:#94a3b8;margin-top:2px}
-.rank-bar-wrap{margin-top:8px}
-.rank-bar{height:6px;background:#fef3c7;border-radius:3px;overflow:hidden}
-.rank-fill{height:100%;border-radius:3px;transition:width .6s ease}
-.rank-detail{display:flex;gap:12px;margin-top:6px}
-.rank-detail-item{font-size:11px;color:#64748b;display:flex;align-items:center;gap:3px}
-.bonus-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#dcfce7;color:#16a34a;margin-left:6px}
-.rank-card.rank-top{border-color:#f59e0b;background:linear-gradient(135deg,#fffbeb,#fff)}
-.summary-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.summary-item{background:#fff;border-radius:12px;padding:14px;border:1px solid #fed7aa;text-align:center}
-.summary-num{font-size:22px;font-weight:800;color:#ea580c}
-.summary-label{font-size:11px;color:#64748b;margin-top:3px}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+
+/* ===== ログイン画面 ===== */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e293b,#0f172a)}
+.login-box{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:40px;width:380px;text-align:center}
+.login-logo{font-size:36px;margin-bottom:8px}
+.login-title{font-size:20px;font-weight:800;color:#f1f5f9;margin-bottom:4px}
+.login-sub{font-size:13px;color:#64748b;margin-bottom:28px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.role-btn{padding:14px 8px;border-radius:12px;border:1.5px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.role-btn:hover{border-color:#ea580c;color:#ea580c}
+.role-btn.selected{border-color:#ea580c;background:rgba(234,88,12,.12);color:#fb923c}
+.role-btn .role-icon{font-size:20px;display:block;margin-bottom:4px}
+.pin-wrap{margin-bottom:20px}
+.pin-label{font-size:13px;color:#64748b;margin-bottom:10px}
+.pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #475569;background:transparent;transition:all .2s}
+.pin-dot.filled{background:#ea580c;border-color:#ea580c}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pin-key{padding:14px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:18px;font-weight:700;cursor:pointer;transition:all .15s}
+.pin-key:hover{background:#1e293b;border-color:#ea580c}
+.pin-key:active{transform:scale(.95)}
+.login-btn{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#ea580c,#f97316);color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px}
+.login-btn:hover{opacity:.9}
+.login-err{color:#f87171;font-size:13px;margin-top:8px;min-height:20px}
+
+/* ===== メイン画面 ===== */
+#app-screen{display:none;min-height:100vh;flex-direction:column}
+.app-header{background:#1e293b;border-bottom:1px solid #334155;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.app-header-logo{font-size:22px;font-weight:800;color:#f1f5f9;flex:1}
+.app-header-role{font-size:12px;background:rgba(234,88,12,.15);color:#fb923c;padding:4px 10px;border-radius:999px;font-weight:700}
+.app-header-user{font-size:14px;color:#94a3b8}
+.logout-btn{padding:6px 14px;border-radius:8px;border:1px solid #475569;background:transparent;color:#94a3b8;font-size:12px;cursor:pointer}
+.logout-btn:hover{border-color:#ea580c;color:#ea580c}
+
+.app-body{display:flex;flex:1}
+.sidebar{width:200px;background:#1e293b;border-right:1px solid #334155;padding:16px 0;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:14px;color:#94a3b8;cursor:pointer;transition:all .15s}
+.nav-item:hover{background:rgba(234,88,12,.08);color:#fb923c}
+.nav-item.active{background:rgba(234,88,12,.12);color:#fb923c;border-right:3px solid #ea580c}
+.nav-item .ni{font-size:16px}
+.nav-sep{height:1px;background:#334155;margin:10px 16px}
+
+.content{flex:1;padding:24px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+
+/* ===== KPIカード ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px}
+.kpi-label{font-size:12px;color:#64748b;margin-bottom:6px}
+.kpi-value{font-size:28px;font-weight:800;color:#f1f5f9;line-height:1}
+.kpi-sub{font-size:12px;margin-top:4px}
+.kpi-up{color:#4ade80}.kpi-down{color:#f87171}.kpi-neu{color:#94a3b8}
+.kpi-card.highlight{border-color:#ea580c;background:rgba(234,88,12,.06)}
+
+/* ===== セクションタイトル ===== */
+.sec-title{font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';width:4px;height:18px;background:#ea580c;border-radius:2px;display:inline-block}
+
+/* ===== テーブル ===== */
+.data-table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
+.data-table th{background:#0f172a;padding:11px 14px;font-size:12px;color:#64748b;font-weight:700;text-align:left;border-bottom:1px solid #334155}
+.data-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #1e293b;color:#e2e8f0}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(234,88,12,.04)}
+.data-table-wrap{background:#1e293b;border:1px solid #334155;border-radius:14px;overflow:hidden;margin-bottom:24px}
+
+/* ===== スコアバー ===== */
+.sbar-wrap{display:flex;align-items:center;gap:8px}
+.sbar{flex:1;height:6px;background:#0f172a;border-radius:3px;position:relative;overflow:visible}
+.sbar-fill{height:100%;border-radius:3px;transition:width .6s}
+.sbar-mark{position:absolute;top:-4px;width:2px;height:14px;background:#475569;border-radius:1px}
+.sbar-num{font-size:13px;font-weight:700;min-width:32px;text-align:right}
+.score-over{color:#f59e0b}.score-ok{color:#4ade80}.score-low{color:#f87171}
+
+/* ===== 評価カード ===== */
+.eval-card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:20px;margin-bottom:14px;cursor:pointer;transition:border-color .2s}
+.eval-card:hover{border-color:#ea580c}
+.eval-card-header{display:flex;align-items:center;gap:12px}
+.eval-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+.eval-name{font-size:15px;font-weight:700;color:#f1f5f9}
+.eval-role-tag{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+.eval-score-big{font-size:32px;font-weight:900;margin-left:auto}
+.eval-detail{margin-top:16px;display:none}
+.eval-card.open .eval-detail{display:block}
+.eval-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
+.eval-row-label{width:140px;color:#64748b;flex-shrink:0;font-size:12px}
+.bonus-badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#065f46;color:#4ade80;margin-left:8px}
+.approve-btn{padding:8px 18px;border-radius:8px;border:none;background:#ea580c;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
+.approve-btn:hover{opacity:.85}
+.approved-badge{display:inline-block;padding:4px 12px;border-radius:999px;background:#065f46;color:#4ade80;font-size:12px;font-weight:700;margin-top:12px}
+
+/* ===== グラフ簡易バー ===== */
+.chart-wrap{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:20px;margin-bottom:24px}
+.chart-bar-group{display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:8px;border-bottom:1px solid #334155}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar-inner{width:100%;background:linear-gradient(180deg,#f97316,#ea580c);border-radius:4px 4px 0 0;transition:height .6s;min-height:4px}
+.chart-bar-label{font-size:10px;color:#64748b;margin-top:4px}
+.chart-bar-val{font-size:10px;color:#fb923c;font-weight:700}
+
+/* ===== 自分の評価画面 ===== */
+.my-eval-hero{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:16px;padding:28px;margin-bottom:24px;text-align:center}
+.my-eval-score{font-size:64px;font-weight:900;line-height:1}
+.my-eval-label{font-size:14px;color:#64748b;margin-top:4px}
+.my-eval-bonus{font-size:18px;font-weight:700;margin-top:8px}
+
+/* ===== 承認待ちバッジ ===== */
+.pending-badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-size:11px;font-weight:700;margin-left:6px}
+
+/* ===== コメント欄 ===== */
+.comment-box{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:13px;resize:vertical;min-height:60px;margin-top:8px}
+.comment-box:focus{outline:none;border-color:#ea580c}
+.save-btn{padding:7px 16px;border-radius:8px;border:none;background:#334155;color:#e2e8f0;font-size:13px;cursor:pointer;margin-top:6px}
+.save-btn:hover{background:#475569}
 </style>
 </head>
 <body>
-<header>
-  <a class="back" href="http://localhost:5172">← ポータル</a>
-  <div><h1>📊 Sales Manager</h1><div class="subtitle">営業・社員管理システム</div></div>
-</header>
 
-<div class="tabs-nav">
-  <div class="nav-tab active" onclick="switchTab(this,'ranking')">🏆 今月のランキング</div>
-  <div class="nav-tab" onclick="switchTab(this,'employees')">👥 社員一覧</div>
-  <div class="nav-tab" onclick="switchTab(this,'orders')">📋 発注サマリー</div>
-  <div class="nav-tab" onclick="switchTab(this,'evaluations')">⭐ 四半期評価</div>
+<!-- ===== ログイン画面 ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🍶</div>
+    <div class="login-title">芦塚酒店</div>
+    <div class="login-sub">Sales Manager へようこそ</div>
+
+    <div class="role-grid" id="role-grid">
+      <div class="role-btn" onclick="selectRole('president')" data-role="president"><span class="role-icon">👑</span>社長</div>
+      <div class="role-btn" onclick="selectRole('manager')" data-role="manager"><span class="role-icon">🏪</span>店長</div>
+      <div class="role-btn" onclick="selectRole('driver')" data-role="driver"><span class="role-icon">🚚</span>配送</div>
+      <div class="role-btn" onclick="selectRole('sales')" data-role="sales"><span class="role-icon">📋</span>販売管理</div>
+      <div class="role-btn" onclick="selectRole('accounting')" data-role="accounting"><span class="role-icon">💰</span>会計管理</div>
+      <div class="role-btn" onclick="selectRole('store')" data-role="store"><span class="role-icon">🏬</span>店舗管理</div>
+    </div>
+
+    <div class="pin-wrap" id="pin-wrap" style="display:none">
+      <div class="pin-label" id="pin-label">PINを入力してください</div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="pin-pad">
+        <div class="pin-key" onclick="pinInput('1')">1</div>
+        <div class="pin-key" onclick="pinInput('2')">2</div>
+        <div class="pin-key" onclick="pinInput('3')">3</div>
+        <div class="pin-key" onclick="pinInput('4')">4</div>
+        <div class="pin-key" onclick="pinInput('5')">5</div>
+        <div class="pin-key" onclick="pinInput('6')">6</div>
+        <div class="pin-key" onclick="pinInput('7')">7</div>
+        <div class="pin-key" onclick="pinInput('8')">8</div>
+        <div class="pin-key" onclick="pinInput('9')">9</div>
+        <div class="pin-key" onclick="pinClear()" style="font-size:13px">戻す</div>
+        <div class="pin-key" onclick="pinInput('0')">0</div>
+        <div class="pin-key" onclick="pinReset()" style="font-size:12px;color:#f87171">消去</div>
+      </div>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
 </div>
 
-<main>
-  <div class="api-err" id="api-err">⚠️ APIサーバー（localhost:3001）に接続できません。バックエンドを起動してください。</div>
-
-  <!-- ランキング -->
-  <div class="section active" id="sec-ranking">
-    <div id="ranking-content"></div>
+<!-- ===== メイン画面 ===== -->
+<div id="app-screen" style="display:none;flex-direction:column;min-height:100vh">
+  <div class="app-header">
+    <div class="app-header-logo">📊 Sales Manager</div>
+    <div class="app-header-user" id="header-user"></div>
+    <div class="app-header-role" id="header-role"></div>
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
-
-  <!-- 社員一覧 -->
-  <div class="section" id="sec-employees">
-    <div class="emp-grid" id="emp-grid"><div style="color:#94a3b8;padding:32px">読み込み中...</div></div>
+  <div class="app-body">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content" id="content"></div>
   </div>
-
-  <!-- 発注サマリー -->
-  <div class="section" id="sec-orders">
-    <div class="toolbar">
-      <select id="ord-emp" onchange="loadOrders()"><option value="">全社員</option></select>
-      <select id="ord-period" onchange="loadOrders()">
-        <option value="">全期間</option>
-        <option value="2026-01-01,2026-03-31">2026年Q1</option>
-        <option value="2026-04-01,2026-06-30">2026年Q2</option>
-        <option value="2025-10-01,2025-12-31">2025年Q4</option>
-      </select>
-    </div>
-    <table class="order-table">
-      <thead><tr><th>発注日</th><th>顧客</th><th>担当</th><th>金額</th><th>粗利率</th><th>ソース</th></tr></thead>
-      <tbody id="ord-tbody"><tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">データを取得中...</td></tr></tbody>
-    </table>
-  </div>
-
-  <!-- 四半期評価 -->
-  <div class="section" id="sec-evaluations">
-    <div class="toolbar">
-      <select id="eval-quarter" class="quarter-sel" onchange="loadEvals()">
-        <option value="2026-Q1" selected>2026年Q1</option>
-        <option value="2026-Q2">2026年Q2</option>
-        <option value="2025-Q4">2025年Q4</option>
-      </select>
-    </div>
-    <div id="eval-list"><div style="color:#94a3b8;padding:32px;text-align:center">四半期評価データがありません</div></div>
-  </div>
-</main>
+</div>
 
 <script>
+// ===== 設定 =====
 const API = 'http://localhost:3001';
-const ROLE_LABELS = {driver:'配送',sales:'営業',warehouse:'倉庫',manager:'管理職'};
-const ROLE_CLASS = {driver:'role-driver',sales:'role-sales',warehouse:'role-warehouse',manager:'role-manager'};
-const SOURCE_LABELS = {smart_unit:'SmartUnit',customer_order:'顧客注文',manual:'手動'};
-let employees = [];
 
-async function init() {
-  // ランキングは常に表示（モックフォールバックあり）
-  loadRanking();
-  try {
-    const res = await fetch(`${API}/api/employees`);
-    employees = (await res.json()).data || [];
-    document.getElementById('api-err').style.display = 'none';
-    renderEmployees();
-    populateEmpSelects();
-    loadOrders();
-    loadEvals();
-    loadRanking(); // API接続成功時に再描画
-  } catch {
-    document.getElementById('api-err').style.display = '';
-    // モックの社員データでフォールバック
-    employees = MOCK_EVALS['2026-Q1'].map(e => ({ id:e.id, name:e.name, color:e.color, avatar:e.avatar, role: e.role==='配送'?'driver':e.role==='営業'?'sales':e.role==='管理職'?'manager':'driver' }));
-    renderEmployees();
-    populateEmpSelects();
-    loadEvals();
+// PINマスタ（変更可能）
+const PINS = {
+  president:  '1234',
+  manager:    '5678',
+  driver:     '1111',
+  sales:      '2222',
+  accounting: '3333',
+  store:      '4444',
+};
+
+const ROLE_NAMES = {
+  president:'社長', manager:'店長', driver:'配送',
+  sales:'販売管理', accounting:'会計管理', store:'店舗管理',
+};
+
+// ===== 状態 =====
+let currentRole = null;
+let pinBuffer = '';
+let employees = [];
+let approvals = {}; // taskId → {managerComment, presidentApproved}
+
+// ===== PIN ログイン =====
+function selectRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+  document.getElementById('pin-wrap').style.display = '';
+  document.getElementById('pin-label').textContent = `${ROLE_NAMES[role]} のPINを入力`;
+  pinReset();
+}
+
+function pinInput(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+}
+
+function pinClear() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+}
+
+function pinReset() {
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('login-err').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`d${i}`).classList.toggle('filled', i < pinBuffer.length);
   }
 }
 
-function renderEmployees() {
-  const grid = document.getElementById('emp-grid');
-  if (!employees.length) { grid.innerHTML = '<div style="color:#94a3b8;padding:32px">社員データがありません</div>'; return; }
-  grid.innerHTML = employees.map(e => `
-    <div class="emp-card">
-      <div class="emp-header">
-        <div class="emp-avatar" style="background:${e.color||'#ea580c'}">${e.avatar||e.name[0]}</div>
-        <div>
-          <div class="emp-name">${e.name}</div>
-          <span class="badge ${ROLE_CLASS[e.role]||''}">${ROLE_LABELS[e.role]||e.role}</span>
-        </div>
-      </div>
-      <div class="emp-stats">
-        <div class="emp-stat"><div class="emp-stat-num">-</div><div class="emp-stat-label">発注件数</div></div>
-        <div class="emp-stat"><div class="emp-stat-num">-</div><div class="emp-stat-label">担当顧客</div></div>
-      </div>
-    </div>
-  `).join('');
+function checkPin() {
+  if (pinBuffer === PINS[currentRole]) {
+    loginSuccess();
+  } else {
+    document.getElementById('login-err').textContent = 'PINが違います。もう一度入力してください。';
+    pinReset();
+  }
 }
 
-function populateEmpSelects() {
-  const sel = document.getElementById('ord-emp');
-  employees.forEach(e => {
-    const o = document.createElement('option');
-    o.value = e.id; o.textContent = e.name;
-    sel.appendChild(o);
-  });
+function loginSuccess() {
+  document.getElementById('login-screen').style.display = 'none';
+  const app = document.getElementById('app-screen');
+  app.style.display = 'flex';
+  document.getElementById('header-role').textContent = ROLE_NAMES[currentRole];
+  document.getElementById('header-user').textContent = getRolePerson(currentRole);
+  buildSidebar();
+  loadData();
 }
 
-async function loadOrders() {
-  const empId = document.getElementById('ord-emp').value;
-  const period = document.getElementById('ord-period').value;
-  const params = new URLSearchParams();
-  if (empId) params.set('employeeId', empId);
-  if (period) { const [from,to] = period.split(','); params.set('from',from); params.set('to',to); }
-  const tbody = document.getElementById('ord-tbody');
+function getRolePerson(role) {
+  const map = {president:'芦塚 義幸', manager:'店長', driver:'', sales:'酒井 さやか', accounting:'会計担当', store:'店舗担当'};
+  return map[role] || '';
+}
+
+function logout() {
+  currentRole = null;
+  pinBuffer = '';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('pin-wrap').style.display = 'none';
+}
+
+// ===== サイドバー構築 =====
+const NAV_CONFIG = {
+  president: [
+    {id:'dashboard', icon:'📈', label:'ダッシュボード'},
+    {id:'ranking',   icon:'🏆', label:'ランキング'},
+    {id:'evaluations', icon:'⭐', label:'評価承認'},
+    {id:'delivery',  icon:'🚚', label:'配送実績'},
+    {id:'store',     icon:'🏬', label:'店舗実績'},
+    {id:'orders',    icon:'📋', label:'発注サマリー'},
+    {id:'employees', icon:'👥', label:'社員管理'},
+  ],
+  manager: [
+    {id:'dashboard', icon:'📈', label:'ダッシュボード'},
+    {id:'ranking',   icon:'🏆', label:'ランキング'},
+    {id:'evaluations', icon:'⭐', label:'評価レビュー'},
+    {id:'delivery',  icon:'🚚', label:'配送実績'},
+    {id:'store',     icon:'🏬', label:'店舗実績'},
+    {id:'orders',    icon:'📋', label:'発注サマリー'},
+  ],
+  driver:     [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'mydelivery', icon:'🚚', label:'自分の実績'}],
+  sales:      [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'saleswork',  icon:'📋', label:'業務状況'}],
+  accounting: [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'accwork',   icon:'💰', label:'業務状況'}],
+  store:      [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'storework', icon:'🏬', label:'業務状況'}],
+};
+
+function buildSidebar() {
+  const items = NAV_CONFIG[currentRole] || [];
+  document.getElementById('sidebar').innerHTML = items.map((n,i) =>
+    `<div class="nav-item${i===0?' active':''}" onclick="showPage('${n.id}',this)">
+       <span class="ni">${n.icon}</span>${n.label}
+       ${n.id==='evaluations' && getPendingCount()>0 ? `<span class="pending-badge">${getPendingCount()}</span>` : ''}
+     </div>`
+  ).join('') + '<div class="nav-sep"></div>';
+  showPage(items[0].id, document.querySelector('.nav-item'));
+}
+
+function getPendingCount() {
+  return MOCK_EVALS['2026-Q1'].filter(e => !approvals[e.id]?.presidentApproved).length;
+}
+
+function showPage(pageId, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderPage(pageId);
+}
+
+// ===== データ読み込み =====
+async function loadData() {
   try {
-    const res = await fetch(`${API}/api/orders?${params}`);
-    const orders = (await res.json()).data || [];
-    if (!orders.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">発注データがありません</td></tr>'; return; }
-    tbody.innerHTML = orders.map(o => {
-      const emp = employees.find(e => e.id === o.employeeId);
-      return `<tr>
-        <td>${(o.orderDate||'').slice(0,10)}</td>
-        <td>${o.customerName}</td>
-        <td>${emp ? emp.name : o.employeeId}</td>
-        <td>¥${(o.totalAmount||0).toLocaleString()}</td>
-        <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="score-bar" style="width:80px"><div class="score-fill" style="width:${((o.totalGrossMargin||0)*100).toFixed(0)}%"></div></div>
-            <span class="score-num">${((o.totalGrossMargin||0)*100).toFixed(1)}%</span>
-          </div>
-        </td>
-        <td><span class="badge" style="background:#fff7ed;color:#c2410c">${SOURCE_LABELS[o.source]||o.source}</span></td>
-      </tr>`;
-    }).join('');
-  } catch { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#991b1b;padding:24px">データ取得に失敗</td></tr>'; }
+    const res = await fetch(`${API}/api/employees`);
+    employees = (await res.json()).data || [];
+  } catch {
+    employees = MOCK_EVALS['2026-Q1'].map(e => ({
+      id:e.id, name:e.name, color:e.color, avatar:e.avatar,
+      role: e.role==='配送'?'driver':e.role==='営業'?'sales':e.role==='管理職'?'manager':'driver'
+    }));
+  }
 }
 
-function renderEvals(evals, qk) {
-  const el = document.getElementById('eval-list');
-  if (!evals.length) { el.innerHTML = '<div style="color:#94a3b8;padding:32px;text-align:center">この四半期の評価データがありません</div>'; return; }
-  el.innerHTML = evals.map(ev => {
-    const name        = ev.employeeName || ev.name;
-    const total       = ev.totalScore   ?? ev.total ?? 0;
-    const newScore    = ev.newProductScore   ?? 0;
-    const newCount    = ev.newProductCount   ?? 0;
-    const newTarget   = ev.newProductTarget  ?? 0;
-    const marginScore = ev.marginScore  ?? 0;
-    const margin      = ev.avgGrossMargin ?? 0;
-    const marginTgt   = ev.marginTarget  ?? 0;
-    const settScore   = ev.settlementScore ?? ev.settlementScore ?? 0;
-    const settRate    = ev.settlementRate  ?? 0;
-    const settTgt     = ev.settlementTarget ?? 0;
-    const prev        = ev.prevQuarterScore ?? ev.prevScore ?? 0;
-    const diff        = total - prev;
-    const diffStr     = diff >= 0 ? `+${diff.toFixed(0)}` : diff.toFixed(0);
-    const diffColor   = diff >= 0 ? '#22c55e' : '#ef4444';
-    const emp         = employees.find(e => e.id === (ev.employeeId || ev.id));
-    const color       = emp?.color || ev.color || '#94a3b8';
-    const avatar      = emp?.avatar || ev.avatar || name[0];
-    const bonus       = bonusLabel(total);
-    const totalColor  = total >= 100 ? '#f59e0b' : '#ea580c';
-    return `
-    <div class="eval-card">
-      <div class="eval-header">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0">${avatar}</div>
-          <div>
-            <div class="eval-emp">${name}</div>
-            <div class="eval-quarter">${qk} &nbsp;<span class="bonus-badge">${bonus}</span></div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:2px">総合スコア <span style="font-size:10px">（100=目標）</span></div>
-          <div class="eval-total" style="color:${totalColor}">${total.toFixed(0)}</div>
-          <div style="font-size:12px;font-weight:700;color:${diffColor}">${diffStr} 前期比</div>
-        </div>
-      </div>
-      <div class="eval-row">
-        <span class="eval-label">🆕 新商品開拓 (33%)</span>
-        <div class="eval-bar-wrap">${scoreBar(newScore)}</div>
-        <span class="score-num" style="width:36px;text-align:right;color:${newScore>=100?'#f59e0b':'#ea580c'}">${newScore.toFixed(0)}</span>
-      </div>
-      <div style="font-size:11px;color:#94a3b8;margin:-6px 0 10px 122px">${newCount}件 ／ 目標 ${newTarget}件</div>
-      <div class="eval-row">
-        <span class="eval-label">💴 販売利益率 (33%)</span>
-        <div class="eval-bar-wrap">${scoreBar(marginScore)}</div>
-        <span class="score-num" style="width:36px;text-align:right;color:${marginScore>=100?'#f59e0b':'#ea580c'}">${marginScore.toFixed(0)}</span>
-      </div>
-      <div style="font-size:11px;color:#94a3b8;margin:-6px 0 10px 122px">${margin}% ／ 目標 ${marginTgt}%</div>
-      <div class="eval-row">
-        <span class="eval-label">📌 定着率 (34%)</span>
-        <div class="eval-bar-wrap">${scoreBar(settScore)}</div>
-        <span class="score-num" style="width:36px;text-align:right;color:${settScore>=100?'#f59e0b':'#ea580c'}">${settScore.toFixed(0)}</span>
-      </div>
-      <div style="font-size:11px;color:#94a3b8;margin:-6px 0 0 122px">${settRate}% ／ 目標 ${settTgt}%</div>
-    </div>`;
-  }).join('');
+// ===== ページレンダリング =====
+function renderPage(pageId) {
+  const c = document.getElementById('content');
+  switch(pageId) {
+    case 'dashboard':   c.innerHTML = renderDashboard(); break;
+    case 'ranking':     c.innerHTML = renderRanking(); break;
+    case 'evaluations': c.innerHTML = renderEvaluations(); break;
+    case 'delivery':    c.innerHTML = renderDelivery(); break;
+    case 'store':       c.innerHTML = renderStoreStats(); break;
+    case 'orders':      c.innerHTML = renderOrders(); break;
+    case 'employees':   c.innerHTML = renderEmployees(); break;
+    case 'myeval':      c.innerHTML = renderMyEval(); break;
+    case 'mydelivery':  c.innerHTML = renderMyDelivery(); break;
+    case 'saleswork':   c.innerHTML = renderSalesWork(); break;
+    case 'accwork':     c.innerHTML = renderAccWork(); break;
+    case 'storework':   c.innerHTML = renderStoreWork(); break;
+    default:            c.innerHTML = '<p style="color:#64748b;padding:40px">準備中</p>';
+  }
 }
 
-async function loadEvals() {
-  const qk = document.getElementById('eval-quarter').value;
-  try {
-    const res = await fetch(`${API}/api/evaluations?quarterKey=${qk}`);
-    const evals = (await res.json()).data || [];
-    if (evals.length) { renderEvals(evals, qk); return; }
-  } catch {}
-  // フォールバック：モックデータ
-  renderEvals(MOCK_EVALS[qk] || [], qk);
-}
-
-// ---- モックデータ（API未接続時のフォールバック） ----
-// スコア = 実績 ÷ 目標 × 100（100=達成、100超=超過達成）
+// ===== モックデータ =====
 const MOCK_EVALS = {
   '2026-Q1': [
     { id:'emp_tan', name:'谷口 亮介',   role:'配送', color:'#3b82f6', avatar:'谷', total:118, newProductCount:9,  newProductTarget:7,  newProductScore:129, avgGrossMargin:32, marginTarget:28, marginScore:114, settlementRate:78, settlementTarget:70, settlementScore:111, prevScore:110 },
@@ -312,127 +360,369 @@ const MOCK_EVALS = {
     { id:'emp_aka', name:'赤川 秀敏',   role:'配送', color:'#ef4444', avatar:'赤', total:80,  newProductCount:4,  newProductTarget:7,  newProductScore:57,  avgGrossMargin:27, marginTarget:28, marginScore:96,  settlementRate:60, settlementTarget:70, settlementScore:86,  prevScore:75  },
     { id:'emp_ima', name:'今村 淳子',   role:'配送', color:'#a855f7', avatar:'今', total:74,  newProductCount:3,  newProductTarget:6,  newProductScore:50,  avgGrossMargin:26, marginTarget:28, marginScore:93,  settlementRate:55, settlementTarget:70, settlementScore:79,  prevScore:70  },
     { id:'emp_kaw', name:'川原 未香',   role:'配送', color:'#ec4899', avatar:'川', total:64,  newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:25, marginTarget:28, marginScore:89,  settlementRate:50, settlementTarget:70, settlementScore:71,  prevScore:60  },
-    { id:'emp_ash', name:'芦塚 義幸',   role:'管理職',color:'#06b6d4', avatar:'芦', total:61,  newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:24, marginTarget:28, marginScore:86,  settlementRate:45, settlementTarget:70, settlementScore:64,  prevScore:55  },
-    { id:'emp_sak', name:'酒井 さやか', role:'営業', color:'#84cc16', avatar:'酒', total:53,  newProductCount:1,  newProductTarget:5,  newProductScore:20,  avgGrossMargin:23, marginTarget:28, marginScore:82,  settlementRate:40, settlementTarget:70, settlementScore:57,  prevScore:50  },
+    { id:'emp_ash', name:'芦塚 義幸',   role:'管理職',color:'#06b6d4', avatar:'芦', total:61, newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:24, marginTarget:28, marginScore:86,  settlementRate:45, settlementTarget:70, settlementScore:64,  prevScore:55  },
+    { id:'emp_sak', name:'酒井 さやか', role:'販売管理',color:'#84cc16',avatar:'酒', total:53, newProductCount:1, newProductTarget:5,  newProductScore:20,  avgGrossMargin:23, marginTarget:28, marginScore:82,  settlementRate:40, settlementTarget:70, settlementScore:57,  prevScore:50  },
   ],
 };
 
-// 賞与倍率: 100=達成(×1.10)、120超=大幅超過(×1.30)
+const MOCK_DELIVERY = [
+  { id:'emp_tan', name:'谷口 亮介', color:'#3b82f6', avatar:'谷', deliveries:142, containers:38, containerTarget:45, sales:4280000, salesTarget:4000000, margin:32, newProducts:9, claims:0, absent:0, late:0 },
+  { id:'emp_oku', name:'奥田 玲晃', color:'#22c55e', avatar:'奥', deliveries:135, containers:35, containerTarget:40, sales:3950000, salesTarget:4000000, margin:30, newProducts:7, claims:1, absent:0, late:1 },
+  { id:'emp_abi', name:'阿比留 徹', color:'#f59e0b', avatar:'阿', deliveries:128, containers:32, containerTarget:40, sales:3820000, salesTarget:4000000, margin:29, newProducts:6, claims:0, absent:1, late:0 },
+  { id:'emp_aka', name:'赤川 秀敏', color:'#ef4444', avatar:'赤', deliveries:115, containers:25, containerTarget:35, sales:3100000, salesTarget:3500000, margin:27, newProducts:4, claims:2, absent:0, late:2 },
+  { id:'emp_ima', name:'今村 淳子', color:'#a855f7', avatar:'今', deliveries:108, containers:22, containerTarget:32, sales:2900000, salesTarget:3500000, margin:26, newProducts:3, claims:1, absent:1, late:1 },
+  { id:'emp_kaw', name:'川原 未香', color:'#ec4899', avatar:'川', deliveries:98,  containers:18, containerTarget:30, sales:2600000, salesTarget:3000000, margin:25, newProducts:2, claims:0, absent:0, late:3 },
+];
+
+const MOCK_STORE = { sales:2850000, salesTarget:3000000, waste:85000, inventory:4200000, inventoryDiff:52000 };
+
+const MOCK_MONTHS = ['10月','11月','12月','1月','2月','3月'];
+const MOCK_MONTHLY_SALES = [18200000, 19500000, 22800000, 17600000, 18900000, 21400000];
+
 function bonusLabel(score) {
-  if (score >= 120) return '×1.30';
-  if (score >= 110) return '×1.20';
-  if (score >= 100) return '×1.10';
-  if (score >= 85)  return '×1.05';
+  if (score>=120) return '×1.30';
+  if (score>=110) return '×1.20';
+  if (score>=100) return '×1.10';
+  if (score>=85)  return '×1.05';
   return '×1.00';
 }
 
-// スコアバー（100点に基準線、超過分は金色）
 const BAR_MAX = 130;
-function scoreBar(score) {
-  const pct      = Math.min(score, BAR_MAX) / BAR_MAX * 100;
-  const markPct  = (100 / BAR_MAX * 100).toFixed(1);
-  const isOver   = score >= 100;
-  const fill     = isOver
-    ? 'linear-gradient(90deg,#f97316,#fbbf24)'
-    : 'linear-gradient(90deg,#f97316,#ea580c)';
-  return `<div style="position:relative;height:8px;background:#fef3c7;border-radius:4px;overflow:visible;flex:1">
-    <div style="height:100%;width:${pct.toFixed(1)}%;background:${fill};border-radius:4px;transition:width .6s ease;max-width:100%"></div>
-    <div style="position:absolute;top:-3px;left:${markPct}%;width:2px;height:14px;background:#475569;border-radius:1px" title="目標100点"></div>
+function scoreBar(score, width) {
+  const pct     = Math.min(score, BAR_MAX) / BAR_MAX * 100;
+  const markPct = (100 / BAR_MAX * 100).toFixed(1);
+  const fill    = score>=100 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#f97316,#ea580c)';
+  const cls     = score>=100 ? 'score-over' : score>=85 ? 'score-ok' : 'score-low';
+  return `<div class="sbar-wrap"${width?` style="width:${width}"`:''}><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${fill}"></div><div class="sbar-mark" style="left:${markPct}%"></div></div><span class="sbar-num ${cls}">${score}</span></div>`;
+}
+
+// ===== ダッシュボード =====
+function renderDashboard() {
+  const totalSales = MOCK_MONTHLY_SALES[5];
+  const prevSales  = MOCK_MONTHLY_SALES[4];
+  const diff       = ((totalSales - prevSales) / prevSales * 100).toFixed(1);
+  const target     = 22000000;
+  const achv       = (totalSales / target * 100).toFixed(1);
+  const avgMargin  = (MOCK_DELIVERY.reduce((s,d)=>s+d.margin,0)/MOCK_DELIVERY.length).toFixed(1);
+  const maxH       = Math.max(...MOCK_MONTHLY_SALES);
+
+  return `
+  <div class="sec-title">経営ダッシュボード <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
+  <div class="kpi-grid">
+    <div class="kpi-card highlight">
+      <div class="kpi-label">今月売上</div>
+      <div class="kpi-value">¥${(totalSales/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
+      <div class="kpi-sub kpi-${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'}${Math.abs(diff)}% 前月比</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">目標達成率</div>
+      <div class="kpi-value" style="color:${achv>=100?'#f59e0b':'#4ade80'}">${achv}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub kpi-neu">目標 ¥${(target/10000).toFixed(0)}万</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">平均粗利率</div>
+      <div class="kpi-value">${avgMargin}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub kpi-neu">目標 28%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">評価承認待ち</div>
+      <div class="kpi-value" style="color:#fb923c">${getPendingCount()}<span style="font-size:14px">件</span></div>
+      <div class="kpi-sub kpi-neu">クリックで確認</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">配送件数（今月）</div>
+      <div class="kpi-value">${MOCK_DELIVERY.reduce((s,d)=>s+d.deliveries,0)}</div>
+      <div class="kpi-sub kpi-neu">全社員合計</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">空容器回収率</div>
+      <div class="kpi-value">${(MOCK_DELIVERY.reduce((s,d)=>s+d.containers,0)/MOCK_DELIVERY.reduce((s,d)=>s+d.containerTarget,0)*100).toFixed(0)}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub kpi-neu">目標 100%</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="sec-title" style="margin-bottom:12px">売上推移（月次）</div>
+    <div class="chart-bar-group">
+      ${MOCK_MONTHS.map((m,i) => {
+        const h = Math.round(MOCK_MONTHLY_SALES[i] / maxH * 100);
+        return `<div class="chart-bar-col">
+          <div class="chart-bar-val">¥${(MOCK_MONTHLY_SALES[i]/10000).toFixed(0)}万</div>
+          <div class="chart-bar-inner" style="height:${h}%"></div>
+          <div class="chart-bar-label">${m}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div class="sec-title">社員スコア一覧</div>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>社員</th><th>役割</th><th>スコア</th><th>前期比</th><th>賞与倍率</th></tr></thead>
+      <tbody>
+        ${MOCK_EVALS['2026-Q1'].sort((a,b)=>b.total-a.total).map(e => {
+          const diff = e.total - e.prevScore;
+          const diffStr = (diff>=0?'+':'')+diff;
+          const diffCls = diff>=0?'score-ok':'score-low';
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:${e.color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${e.avatar}</div>${e.name}</div></td>
+            <td><span style="font-size:11px;color:#94a3b8">${e.role}</span></td>
+            <td>${scoreBar(e.total, '160px')}</td>
+            <td><span class="${diffCls}" style="font-weight:700">${diffStr}</span></td>
+            <td><span class="bonus-badge">${bonusLabel(e.total)}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
   </div>`;
 }
 
-const MOCK_RANKING = MOCK_EVALS['2026-Q1']
-  .slice().sort((a,b)=>b.total-a.total)
-  .map((e,i)=>({
-    rank:i+1, id:e.id, name:e.name, role:e.role, color:e.color, avatar:e.avatar,
-    score:e.total, newProduct:e.newProductCount, margin:e.avgGrossMargin, settle:e.settlementRate,
-    bonus: bonusLabel(e.total),
-  }));
+// ===== ランキング =====
+function renderRanking() {
+  const data = MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>b.total-a.total);
+  const medals = ['🥇','🥈','🥉'];
+  return `
+  <div class="sec-title">今月のランキング</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    ${data.map((e,i) => {
+      const diff = e.total - e.prevScore;
+      return `<div class="eval-card" onclick="toggleCard(this)">
+        <div class="eval-card-header">
+          <div style="width:32px;height:32px;border-radius:50%;background:${i<3?['#f59e0b','#94a3b8','#b45309'][i]:'#1e293b'};display:flex;align-items:center;justify-content:center;font-size:${i<3?18:13}px;font-weight:900;color:#fff;flex-shrink:0">${i<3?medals[i]:i+1}</div>
+          <div class="eval-avatar" style="background:${e.color}">${e.avatar}</div>
+          <div style="flex:1">
+            <div class="eval-name">${e.name}<span class="bonus-badge">${bonusLabel(e.total)}</span></div>
+            <div style="font-size:11px;color:#64748b">${e.role} &nbsp;前期比 <span style="${diff>=0?'color:#4ade80':'color:#f87171'};font-weight:700">${diff>=0?'+':''}${diff}</span></div>
+          </div>
+          <div class="eval-score-big" style="color:${e.total>=100?'#f59e0b':'#4ade80'}">${e.total}</div>
+        </div>
+        <div class="eval-detail">
+          <div style="margin-top:12px">
+            <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓 (33%)</span>${scoreBar(e.newProductScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.newProductCount}件/目標${e.newProductTarget}件</span></div>
+            <div class="eval-row"><span class="eval-row-label">💴 販売利益率 (33%)</span>${scoreBar(e.marginScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.avgGrossMargin}%/目標${e.marginTarget}%</span></div>
+            <div class="eval-row"><span class="eval-row-label">📌 定着率 (34%)</span>${scoreBar(e.settlementScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.settlementRate}%/目標${e.settlementTarget}%</span></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
 
-function renderRanking(data) {
-  const top = data[0];
-  const avg = Math.round(data.reduce((s,e)=>s+e.score,0)/data.length);
-  const container = document.getElementById('ranking-content');
-  const now = new Date();
-  const period = `${now.getFullYear()}年${now.getMonth()+1}月`;
-  container.innerHTML = `
-    <div class="ranking-header">
-      <div class="ranking-title">🏆 今月のランキング</div>
-      <div class="ranking-period">${period} 集計</div>
-    </div>
-    <div class="summary-bar">
-      <div class="summary-item"><div class="summary-num">${data.length}</div><div class="summary-label">評価対象</div></div>
-      <div class="summary-item"><div class="summary-num">${top.score}</div><div class="summary-label">最高スコア</div></div>
-      <div class="summary-item"><div class="summary-num">${avg}</div><div class="summary-label">チーム平均</div></div>
-    </div>
-    <div class="ranking-list">
-      ${data.map(e => {
-        const medalClass = e.rank===1?'rank-1':e.rank===2?'rank-2':e.rank===3?'rank-3':'rank-other';
-        const medalText  = e.rank===1?'🥇':e.rank===2?'🥈':e.rank===3?'🥉':e.rank;
-        const fillPct    = Math.min(Math.round(e.score / BAR_MAX * 100), 100);
-        const fillColor  = e.score>=100?'linear-gradient(90deg,#f59e0b,#fbbf24)':e.rank<=3?'linear-gradient(90deg,#ea580c,#f97316)':'linear-gradient(90deg,#94a3b8,#cbd5e1)';
-        const cardClass  = e.rank===1?' rank-top':'';
-        return `
-        <div class="rank-card${cardClass}">
-          <div class="rank-medal ${medalClass}">${medalText}</div>
-          <div class="rank-avatar" style="background:${e.color}">${e.avatar}</div>
-          <div class="rank-info">
-            <div class="rank-name">${e.name}<span class="bonus-badge">${e.bonus}</span></div>
-            <div class="rank-role">${e.role}</div>
-            <div class="rank-bar-wrap">
-              <div class="rank-bar"><div class="rank-fill" style="width:${fillPct}%;background:${fillColor}"></div></div>
-            </div>
-            <div class="rank-detail">
-              <span class="rank-detail-item">🆕 新商品 ${e.newProduct}件</span>
-              <span class="rank-detail-item">💴 粗利率 ${e.margin}%</span>
-              <span class="rank-detail-item">📌 定着率 ${e.settle}%</span>
-            </div>
-          </div>
-          <div class="rank-score-wrap">
-            <div class="rank-score">${e.score}</div>
-            <div class="rank-score-label">点</div>
-          </div>
-        </div>`;
-      }).join('')}
+// ===== 評価承認 =====
+function renderEvaluations() {
+  const evals = MOCK_EVALS['2026-Q1'];
+  const isPresident = currentRole === 'president';
+  const isManager   = currentRole === 'manager';
+  return `
+  <div class="sec-title">評価 ${isPresident?'承認':'レビュー'} <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
+  ${evals.map(e => {
+    const ap = approvals[e.id] || {};
+    const approved = ap.presidentApproved;
+    return `<div class="eval-card open" id="ec-${e.id}">
+      <div class="eval-card-header">
+        <div class="eval-avatar" style="background:${e.color}">${e.avatar}</div>
+        <div style="flex:1">
+          <div class="eval-name">${e.name}</div>
+          <div style="font-size:11px;color:#64748b">${e.role}</div>
+        </div>
+        <div class="eval-score-big" style="color:${e.total>=100?'#f59e0b':'#4ade80'}">${e.total}</div>
+        ${approved ? '<span class="approved-badge">✅ 承認済み</span>' : ''}
+      </div>
+      <div class="eval-detail" style="display:block">
+        <div style="margin-top:12px">
+          <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓</span>${scoreBar(e.newProductScore)}</div>
+          <div class="eval-row"><span class="eval-row-label">💴 販売利益率</span>${scoreBar(e.marginScore)}</div>
+          <div class="eval-row"><span class="eval-row-label">📌 定着率</span>${scoreBar(e.settlementScore)}</div>
+        </div>
+        ${isManager ? `
+          <div style="margin-top:12px">
+            <div style="font-size:12px;color:#64748b;margin-bottom:4px">店長コメント</div>
+            <textarea class="comment-box" id="mgr-${e.id}" placeholder="コメントを入力...">${ap.managerComment||''}</textarea>
+            <button class="save-btn" onclick="saveManagerComment('${e.id}')">保存</button>
+          </div>` : ''}
+        ${isPresident ? `
+          <div style="margin-top:12px">
+            ${ap.managerComment ? `<div style="background:#0f172a;border-radius:8px;padding:10px 12px;font-size:13px;color:#94a3b8;margin-bottom:10px"><span style="color:#64748b;font-size:11px">店長コメント：</span><br>${ap.managerComment}</div>` : '<div style="font-size:12px;color:#475569;margin-bottom:10px">店長コメントなし</div>'}
+            <div style="font-size:12px;color:#64748b;margin-bottom:4px">社長コメント</div>
+            <textarea class="comment-box" id="prs-${e.id}" placeholder="最終コメントを入力...">${ap.presidentComment||''}</textarea>
+            ${!approved ? `<button class="approve-btn" onclick="approveEval('${e.id}')">✅ 承認・確定</button>` : '<span class="approved-badge">承認済み</span>'}
+          </div>` : ''}
+      </div>
     </div>`;
+  }).join('')}`;
 }
 
-async function loadRanking() {
-  try {
-    const res = await fetch(`${API}/api/evaluations?quarterKey=2026-Q1`);
-    const evals = (await res.json()).data || [];
-    if (evals.length) {
-      const data = evals
-        .sort((a,b)=>b.totalScore-a.totalScore)
-        .map((e,i)=>({
-          rank: i+1, id: e.employeeId, name: e.employeeName,
-          role: '配送', color: '#64748b', avatar: e.employeeName[0],
-          score: Math.round(e.totalScore),
-          newProduct: e.newProductCount, margin: Math.round(e.avgGrossMargin),
-          settle: Math.round(e.settlementRate),
-          bonus: bonusLabel(Math.round(e.totalScore)),
-        }));
-      // アバター・カラーを社員データで補完
-      data.forEach(d => {
-        const emp = employees.find(e=>e.id===d.id);
-        if (emp) { d.color=emp.color; d.avatar=emp.avatar; d.role=emp.role==='driver'?'配送':emp.role==='manager'?'管理職':emp.role==='sales'?'営業':'倉庫'; }
-      });
-      renderRanking(data);
-      return;
-    }
-  } catch {}
-  // フォールバック：モックデータ
-  renderRanking(MOCK_RANKING);
+function saveManagerComment(id) {
+  const val = document.getElementById(`mgr-${id}`).value;
+  approvals[id] = { ...(approvals[id]||{}), managerComment: val };
+  alert('保存しました');
 }
 
-function switchTab(el, section) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(`sec-${section}`).classList.add('active');
+function approveEval(id) {
+  const val = document.getElementById(`prs-${id}`).value;
+  approvals[id] = { ...(approvals[id]||{}), presidentComment: val, presidentApproved: true };
+  renderPage('evaluations');
 }
 
-init();
+// ===== 配送実績 =====
+function renderDelivery() {
+  const total = {deliveries:0,containers:0,containerTarget:0,sales:0,salesTarget:0,claims:0,absent:0,late:0};
+  MOCK_DELIVERY.forEach(d => { for(const k in total) total[k]+=d[k]; });
+  return `
+  <div class="sec-title">配送実績（全体）</div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+    <div class="kpi-card"><div class="kpi-label">配送件数</div><div class="kpi-value">${total.deliveries}</div></div>
+    <div class="kpi-card"><div class="kpi-label">空容器回収率</div><div class="kpi-value">${(total.containers/total.containerTarget*100).toFixed(0)}%</div><div class="kpi-sub kpi-neu">${total.containers}/${total.containerTarget}本</div></div>
+    <div class="kpi-card highlight"><div class="kpi-label">売上合計</div><div class="kpi-value">¥${(total.sales/10000).toFixed(0)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-${total.sales>=total.salesTarget?'up':'down'}">${(total.sales/total.salesTarget*100).toFixed(0)}% 達成</div></div>
+    <div class="kpi-card"><div class="kpi-label">クレーム件数</div><div class="kpi-value" style="color:${total.claims>0?'#f87171':'#4ade80'}">${total.claims}</div></div>
+    <div class="kpi-card"><div class="kpi-label">欠勤</div><div class="kpi-value">${total.absent}日</div></div>
+    <div class="kpi-card"><div class="kpi-label">遅刻</div><div class="kpi-value">${total.late}回</div></div>
+  </div>
+  <div class="sec-title">社員別 配送実績</div>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>社員</th><th>配送件数</th><th>回収率</th><th>売上</th><th>達成率</th><th>粗利率</th><th>新商品</th><th>クレーム</th><th>欠勤/遅刻</th></tr></thead>
+      <tbody>
+        ${MOCK_DELIVERY.map(d => {
+          const cRate = (d.containers/d.containerTarget*100).toFixed(0);
+          const sRate = (d.sales/d.salesTarget*100).toFixed(0);
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:${d.color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${d.avatar}</div>${d.name}</div></td>
+            <td>${d.deliveries}</td>
+            <td><span style="color:${cRate>=100?'#4ade80':cRate>=80?'#fb923c':'#f87171'};font-weight:700">${cRate}%</span></td>
+            <td>¥${(d.sales/10000).toFixed(0)}万</td>
+            <td><span style="color:${sRate>=100?'#f59e0b':sRate>=90?'#4ade80':'#f87171'};font-weight:700">${sRate}%</span></td>
+            <td>${d.margin}%</td>
+            <td>${d.newProducts}件</td>
+            <td style="color:${d.claims>0?'#f87171':'#4ade80'}">${d.claims}</td>
+            <td style="color:${(d.absent+d.late)>0?'#fb923c':'#4ade80'}">${d.absent}日/${d.late}回</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== 店舗実績 =====
+function renderStoreStats() {
+  const s = MOCK_STORE;
+  const sRate = (s.sales/s.salesTarget*100).toFixed(1);
+  const wRate = (s.waste/s.sales*100).toFixed(1);
+  const dRate = (s.inventoryDiff/s.inventory*100).toFixed(1);
+  return `
+  <div class="sec-title">店舗実績</div>
+  <div class="kpi-grid">
+    <div class="kpi-card highlight"><div class="kpi-label">店舗売上</div><div class="kpi-value">¥${(s.sales/10000).toFixed(0)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-${sRate>=100?'up':'down'}">達成率 ${sRate}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">廃棄金額</div><div class="kpi-value" style="color:${wRate<=2?'#4ade80':'#f87171'}">¥${(s.waste/10000).toFixed(1)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-neu">廃棄率 ${wRate}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">在庫差異率</div><div class="kpi-value" style="color:${dRate<=1?'#4ade80':'#fb923c'}">${dRate}<span style="font-size:14px">%</span></div><div class="kpi-sub kpi-neu">差異額 ¥${(s.inventoryDiff/10000).toFixed(1)}万</div></div>
+  </div>`;
+}
+
+// ===== 発注サマリー =====
+function renderOrders() {
+  return `<div class="sec-title">発注サマリー</div><div style="color:#64748b;padding:40px;text-align:center">バックエンド接続後に表示されます</div>`;
+}
+
+// ===== 社員管理 =====
+function renderEmployees() {
+  return `
+  <div class="sec-title">社員管理</div>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>社員</th><th>役割</th><th>PIN変更</th></tr></thead>
+      <tbody>
+        ${Object.entries(ROLE_NAMES).map(([role, label]) => `
+          <tr>
+            <td>${label}</td>
+            <td><span style="font-size:11px;color:#94a3b8">${role}</span></td>
+            <td><button class="save-btn" onclick="alert('PIN変更機能は準備中です')">変更</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ===== 自分の評価 =====
+function renderMyEval() {
+  // 配送以外は仮スコア
+  const myData = MOCK_EVALS['2026-Q1'].find(e => e.id === 'emp_sak') || MOCK_EVALS['2026-Q1'][0];
+  const score  = myData.total;
+  const diff   = score - myData.prevScore;
+  return `
+  <div class="sec-title">自分の評価 <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
+  <div class="my-eval-hero">
+    <div style="font-size:13px;color:#64748b;margin-bottom:8px">総合スコア（100=目標達成）</div>
+    <div class="my-eval-score" style="color:${score>=100?'#f59e0b':'#4ade80'}">${score}</div>
+    <div class="my-eval-bonus">${bonusLabel(score)}</div>
+    <div style="font-size:13px;margin-top:8px;color:${diff>=0?'#4ade80':'#f87171'}">${diff>=0?'▲':'▼'}${Math.abs(diff)}点 前期比</div>
+  </div>
+  <div class="eval-card">
+    <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓 (33%)</span>${scoreBar(myData.newProductScore)}</div>
+    <div style="font-size:11px;color:#64748b;margin:-4px 0 10px 148px">${myData.newProductCount}件 ／ 目標 ${myData.newProductTarget}件</div>
+    <div class="eval-row"><span class="eval-row-label">💴 販売利益率 (33%)</span>${scoreBar(myData.marginScore)}</div>
+    <div style="font-size:11px;color:#64748b;margin:-4px 0 10px 148px">${myData.avgGrossMargin}% ／ 目標 ${myData.marginTarget}%</div>
+    <div class="eval-row"><span class="eval-row-label">📌 定着率 (34%)</span>${scoreBar(myData.settlementScore)}</div>
+    <div style="font-size:11px;color:#64748b;margin:-4px 0 0 148px">${myData.settlementRate}% ／ 目標 ${myData.settlementTarget}%</div>
+  </div>
+  <div style="font-size:12px;color:#475569;margin-top:16px;padding:12px;background:#1e293b;border-radius:8px">※ 評価は店長レビュー後、社長が最終承認します。確定後に結果が反映されます。</div>`;
+}
+
+// ===== 自分の配送実績 =====
+function renderMyDelivery() {
+  const d = MOCK_DELIVERY[0];
+  return `
+  <div class="sec-title">自分の配送実績（今月）</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">配送件数</div><div class="kpi-value">${d.deliveries}</div></div>
+    <div class="kpi-card"><div class="kpi-label">空容器回収率</div><div class="kpi-value">${(d.containers/d.containerTarget*100).toFixed(0)}%</div><div class="kpi-sub kpi-neu">${d.containers}/${d.containerTarget}本</div></div>
+    <div class="kpi-card highlight"><div class="kpi-label">売上達成率</div><div class="kpi-value" style="color:#f59e0b">${(d.sales/d.salesTarget*100).toFixed(0)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">新商品獲得</div><div class="kpi-value">${d.newProducts}件</div></div>
+    <div class="kpi-card"><div class="kpi-label">クレーム</div><div class="kpi-value" style="color:${d.claims>0?'#f87171':'#4ade80'}">${d.claims}件</div></div>
+    <div class="kpi-card"><div class="kpi-label">欠勤/遅刻</div><div class="kpi-value">${d.absent}/${d.late}</div></div>
+  </div>`;
+}
+
+// ===== 販売管理 業務状況 =====
+function renderSalesWork() {
+  return `
+  <div class="sec-title">販売管理 業務状況</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">未処理受注</div><div class="kpi-value" style="color:#fb923c">3件</div></div>
+    <div class="kpi-card highlight"><div class="kpi-label">当日処理率</div><div class="kpi-value">97%</div></div>
+    <div class="kpi-card"><div class="kpi-label">入力エラー率</div><div class="kpi-value" style="color:#4ade80">0.8%</div></div>
+    <div class="kpi-card"><div class="kpi-label">売掛残高</div><div class="kpi-value">¥182万</div></div>
+    <div class="kpi-card"><div class="kpi-label">督促件数</div><div class="kpi-value" style="color:#fb923c">2件</div></div>
+  </div>`;
+}
+
+// ===== 会計管理 業務状況 =====
+function renderAccWork() {
+  return `
+  <div class="sec-title">会計管理 業務状況</div>
+  <div class="kpi-grid">
+    <div class="kpi-card highlight"><div class="kpi-label">未収金回収率</div><div class="kpi-value">94%</div></div>
+    <div class="kpi-card"><div class="kpi-label">月次締め</div><div class="kpi-value" style="color:#4ade80">完了</div></div>
+    <div class="kpi-card"><div class="kpi-label">仕訳差異</div><div class="kpi-value" style="color:#4ade80">0件</div></div>
+    <div class="kpi-card"><div class="kpi-label">未収金残高</div><div class="kpi-value">¥48万</div></div>
+  </div>`;
+}
+
+// ===== 店舗管理 業務状況 =====
+function renderStoreWork() {
+  const s = MOCK_STORE;
+  return `
+  <div class="sec-title">店舗管理 業務状況</div>
+  <div class="kpi-grid">
+    <div class="kpi-card highlight"><div class="kpi-label">売上達成率</div><div class="kpi-value">${(s.sales/s.salesTarget*100).toFixed(0)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">廃棄率</div><div class="kpi-value">${(s.waste/s.sales*100).toFixed(1)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">在庫差異率</div><div class="kpi-value">${(s.inventoryDiff/s.inventory*100).toFixed(1)}%</div></div>
+  </div>`;
+}
+
+// ===== ユーティリティ =====
+function toggleCard(el) { el.classList.toggle('open'); }
+
+init && init();
 </script>
 </body>
 </html>
