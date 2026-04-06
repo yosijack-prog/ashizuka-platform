@@ -1,178 +1,233 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sales Manager – 芦塚酒店 経営管理</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Manager – 芦塚酒店</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+/* === Design Tokens === */
+:root{
+  --bg:#060c17;--sf:#0d1525;--sf2:#142035;--sf3:#1b2a46;
+  --bd:#1e2e48;--bd2:#2a3e5e;
+  --tx:#e6f0fa;--tx2:#7a92a8;--tx3:#384d64;
+  --ac:#f97316;--ac-bg:rgba(249,115,22,.10);--ac-bd:rgba(249,115,22,.25);
+  --gn:#10d9a0;--gn-bg:rgba(16,217,160,.08);
+  --am:#f5a623;--am-bg:rgba(245,166,35,.08);
+  --rd:#f54e6e;--rd-bg:rgba(245,78,110,.08);
+  --bl:#4da6ff;--bl-bg:rgba(77,166,255,.08);
+  --gd:#fbbf24;
+  --r:10px;--rs:6px;--rl:14px;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+body{font-family:'Inter','Hiragino Sans','Yu Gothic',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
-/* ===== ログイン画面 ===== */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e293b,#0f172a)}
-.login-box{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:40px;width:380px;text-align:center}
-.login-logo{font-size:36px;margin-bottom:8px}
-.login-title{font-size:20px;font-weight:800;color:#f1f5f9;margin-bottom:4px}
-.login-sub{font-size:13px;color:#64748b;margin-bottom:28px}
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
-.role-btn{padding:14px 8px;border-radius:12px;border:1.5px solid #334155;background:#0f172a;color:#94a3b8;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
-.role-btn:hover{border-color:#ea580c;color:#ea580c}
-.role-btn.selected{border-color:#ea580c;background:rgba(234,88,12,.12);color:#fb923c}
-.role-btn .role-icon{font-size:20px;display:block;margin-bottom:4px}
-.pin-wrap{margin-bottom:20px}
-.pin-label{font-size:13px;color:#64748b;margin-bottom:10px}
-.pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #475569;background:transparent;transition:all .2s}
-.pin-dot.filled{background:#ea580c;border-color:#ea580c}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.pin-key{padding:14px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:18px;font-weight:700;cursor:pointer;transition:all .15s}
-.pin-key:hover{background:#1e293b;border-color:#ea580c}
-.pin-key:active{transform:scale(.95)}
-.login-btn{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#ea580c,#f97316);color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px}
-.login-btn:hover{opacity:.9}
-.login-err{color:#f87171;font-size:13px;margin-top:8px;min-height:20px}
+/* ===== LOGIN ===== */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(249,115,22,.07) 0%,transparent 65%),
+             linear-gradient(160deg,#0d1525 0%,#060c17 100%)}
+.login-box{background:rgba(13,21,37,.92);backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:var(--rl);padding:40px 36px;width:420px;text-align:center;box-shadow:0 8px 48px rgba(0,0,0,.6)}
+.login-mark{width:52px;height:52px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;box-shadow:0 4px 24px rgba(249,115,22,.35)}
+.login-title{font-size:22px;font-weight:800;color:var(--tx);letter-spacing:-.02em;margin-bottom:3px}
+.login-sub{font-size:12px;color:var(--tx2);margin-bottom:28px;font-weight:500}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px}
+.role-btn{padding:13px 6px 10px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sf);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;font-family:inherit}
+.role-btn:hover{border-color:var(--ac-bd);color:var(--ac);background:var(--ac-bg)}
+.role-btn.selected{border-color:var(--ac);background:var(--ac-bg);color:#fb923c;box-shadow:0 0 0 1px rgba(249,115,22,.18)}
+.role-btn .role-icon{font-size:22px;display:block;margin-bottom:5px}
+.pin-wrap{margin-bottom:12px}
+.pin-label{font-size:12px;color:var(--tx2);margin-bottom:14px;font-weight:500}
+.pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--bd2);background:transparent;transition:all .15s}
+.pin-dot.filled{background:var(--ac);border-color:var(--ac);box-shadow:0 0 10px rgba(249,115,22,.5)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pin-key{padding:14px 6px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-size:18px;font-weight:700;cursor:pointer;transition:all .12s;user-select:none;font-family:inherit}
+.pin-key:hover{background:var(--sf2);border-color:var(--bd2)}
+.pin-key:active{transform:scale(.94);background:var(--sf3)}
+.login-err{color:#f87171;font-size:12px;margin-top:10px;min-height:18px;font-weight:500}
 
-/* ===== メイン画面 ===== */
-#app-screen{display:none;min-height:100vh;flex-direction:column}
-.app-header{background:#1e293b;border-bottom:1px solid #334155;padding:12px 24px;display:flex;align-items:center;gap:16px}
-.app-header-logo{font-size:22px;font-weight:800;color:#f1f5f9;flex:1}
-.app-header-role{font-size:12px;background:rgba(234,88,12,.15);color:#fb923c;padding:4px 10px;border-radius:999px;font-weight:700}
-.app-header-user{font-size:14px;color:#94a3b8}
-.logout-btn{padding:6px 14px;border-radius:8px;border:1px solid #475569;background:transparent;color:#94a3b8;font-size:12px;cursor:pointer}
-.logout-btn:hover{border-color:#ea580c;color:#ea580c}
+/* ===== APP SHELL ===== */
+#app-screen{display:none;flex-direction:column;min-height:100vh}
+.app-header{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 20px;height:50px;display:flex;align-items:center;position:sticky;top:0;z-index:100;flex-shrink:0}
+.hbrand{display:flex;align-items:center;gap:9px;flex-shrink:0;padding-right:18px}
+.hbrand-mark{width:30px;height:30px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.hbrand-text{font-size:14px;font-weight:800;color:var(--tx);letter-spacing:-.02em;white-space:nowrap}
+.hdiv{width:1px;height:26px;background:var(--bd);flex-shrink:0;margin:0 4px}
+.hkpi-bar{display:flex;align-items:stretch;flex:1;overflow:hidden}
+.hkpi{display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:1px solid var(--bd)}
+.hkpi-v{font-size:15px;font-weight:800;line-height:1.1;color:var(--tx)}
+.hkpi-l{font-size:10px;color:var(--tx2);margin-top:1px;white-space:nowrap;font-weight:500}
+.hright{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.role-tag{font-size:11px;background:var(--ac-bg);color:#fb923c;border:1px solid var(--ac-bd);padding:3px 10px;border-radius:999px;font-weight:600}
+.user-name{font-size:12px;color:var(--tx2);font-weight:500}
+.logout-btn{padding:5px 12px;border-radius:var(--rs);border:1px solid var(--bd);background:transparent;color:var(--tx2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.logout-btn:hover{border-color:var(--rd);color:var(--rd)}
 
-.app-body{display:flex;flex:1}
-.sidebar{width:200px;background:#1e293b;border-right:1px solid #334155;padding:16px 0;flex-shrink:0}
-.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:14px;color:#94a3b8;cursor:pointer;transition:all .15s}
-.nav-item:hover{background:rgba(234,88,12,.08);color:#fb923c}
-.nav-item.active{background:rgba(234,88,12,.12);color:#fb923c;border-right:3px solid #ea580c}
-.nav-item .ni{font-size:16px}
-.nav-sep{height:1px;background:#334155;margin:10px 16px}
+/* ===== LAYOUT ===== */
+.app-body{display:flex;flex:1;height:calc(100vh - 50px)}
+.sidebar{width:200px;background:var(--sf);border-right:1px solid var(--bd);padding:8px 0 20px;flex-shrink:0;overflow-y:auto}
+.nav-section{font-size:10px;color:var(--tx3);padding:12px 16px 4px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px 8px 16px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;transition:all .12s;position:relative;white-space:nowrap}
+.nav-item:hover{background:rgba(249,115,22,.06);color:var(--tx)}
+.nav-item.active{background:var(--ac-bg);color:var(--ac);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac);border-radius:0 2px 2px 0}
+.ni{font-size:14px;flex-shrink:0}
+.nav-sep{height:1px;background:var(--bd);margin:8px 16px}
+.content{flex:1;overflow-y:auto;padding:20px}
 
-.content{flex:1;padding:24px;overflow-y:auto}
-.page{display:none}.page.active{display:block}
+/* ===== PAGE HEADER ===== */
+.page-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:18px}
+.page-hd h2{font-size:18px;font-weight:800;color:var(--tx);letter-spacing:-.02em}
+.page-hd span{font-size:12px;color:var(--tx2);font-weight:500}
 
-/* ===== KPIカード ===== */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.kpi-card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px}
-.kpi-label{font-size:12px;color:#64748b;margin-bottom:6px}
-.kpi-value{font-size:28px;font-weight:800;color:#f1f5f9;line-height:1}
-.kpi-sub{font-size:12px;margin-top:4px}
-.kpi-up{color:#4ade80}.kpi-down{color:#f87171}.kpi-neu{color:#94a3b8}
-.kpi-card.highlight{border-color:#ea580c;background:rgba(234,88,12,.06)}
+/* ===== GRID ===== */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g6{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.span2{grid-column:span 2}.span3{grid-column:span 3}
 
-/* ===== セクションタイトル ===== */
-.sec-title{font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.sec-title::before{content:'';width:4px;height:18px;background:#ea580c;border-radius:2px;display:inline-block}
+/* ===== KPI CARDS ===== */
+.kpi{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px 14px 19px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd2);border-radius:0 2px 2px 0}
+.kpi.accent::before{background:var(--ac)}.kpi.green::before{background:var(--gn)}
+.kpi.red::before{background:var(--rd)}.kpi.amber::before{background:var(--am)}
+.kpi.accent{border-color:rgba(249,115,22,.18);background:rgba(249,115,22,.04)}
+.kpi.green{border-color:rgba(16,217,160,.18);background:rgba(16,217,160,.04)}
+.kpi.red{border-color:rgba(245,78,110,.18);background:rgba(245,78,110,.04)}
+.kpi.amber{border-color:rgba(245,166,35,.18);background:rgba(245,166,35,.04)}
+.kpi-l{font-size:11px;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:4px;font-weight:500}
+.kpi-v{font-size:26px;font-weight:800;line-height:1;color:var(--tx);letter-spacing:-.02em}
+.kpi-v.sm{font-size:21px}.kpi-v.lg{font-size:34px}
+.kpi-sub{font-size:11px;margin-top:5px;color:var(--tx2)}
+.up{color:var(--gn)!important}.down{color:var(--rd)!important}.warn{color:var(--am)!important}.gold{color:var(--gd)!important}.ok{color:var(--gn)!important}
 
-/* ===== テーブル ===== */
-.data-table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
-.data-table th{background:#0f172a;padding:11px 14px;font-size:12px;color:#64748b;font-weight:700;text-align:left;border-bottom:1px solid #334155}
-.data-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #1e293b;color:#e2e8f0}
-.data-table tr:last-child td{border-bottom:none}
-.data-table tr:hover td{background:rgba(234,88,12,.04)}
-.data-table-wrap{background:#1e293b;border:1px solid #334155;border-radius:14px;overflow:hidden;margin-bottom:24px}
+/* ===== PANELS ===== */
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.panel-head{padding:10px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.12)}
+.panel-title{font-size:13px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.panel-title::before{content:'';width:3px;height:14px;background:var(--ac);border-radius:2px;display:inline-block;flex-shrink:0}
+.panel-body{padding:14px 16px}
+.panel-sub{font-size:11px;color:var(--tx2);font-weight:500}
 
-/* ===== スコアバー ===== */
-.sbar-wrap{display:flex;align-items:center;gap:8px}
-.sbar{flex:1;height:6px;background:#0f172a;border-radius:3px;position:relative;overflow:visible}
-.sbar-fill{height:100%;border-radius:3px;transition:width .6s}
-.sbar-mark{position:absolute;top:-4px;width:2px;height:14px;background:#475569;border-radius:1px}
-.sbar-num{font-size:13px;font-weight:700;min-width:32px;text-align:right}
-.score-over{color:#f59e0b}.score-ok{color:#4ade80}.score-low{color:#f87171}
+/* ===== TABLE ===== */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:rgba(0,0,0,.18);padding:7px 10px;font-size:10px;color:var(--tx2);font-weight:700;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
+.tbl td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(30,46,72,.7);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(249,115,22,.025)}
+.tbl td.num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.tbl th.num{text-align:right}
+.tbl-total td{border-top:2px solid var(--bd);font-weight:700;background:rgba(0,0,0,.15)!important}
 
-/* ===== 評価カード ===== */
-.eval-card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:20px;margin-bottom:14px;cursor:pointer;transition:border-color .2s}
-.eval-card:hover{border-color:#ea580c}
-.eval-card-header{display:flex;align-items:center;gap:12px}
-.eval-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
-.eval-name{font-size:15px;font-weight:700;color:#f1f5f9}
-.eval-role-tag{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
-.eval-score-big{font-size:32px;font-weight:900;margin-left:auto}
-.eval-detail{margin-top:16px;display:none}
-.eval-card.open .eval-detail{display:block}
-.eval-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
-.eval-row-label{width:140px;color:#64748b;flex-shrink:0;font-size:12px}
-.bonus-badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#065f46;color:#4ade80;margin-left:8px}
-.approve-btn{padding:8px 18px;border-radius:8px;border:none;background:#ea580c;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
-.approve-btn:hover{opacity:.85}
-.approved-badge{display:inline-block;padding:4px 12px;border-radius:999px;background:#065f46;color:#4ade80;font-size:12px;font-weight:700;margin-top:12px}
+/* ===== SCORE BAR ===== */
+.sbar-wrap{display:flex;align-items:center;gap:7px}
+.sbar{flex:1;height:6px;background:var(--bg);border-radius:3px;position:relative;min-width:60px}
+.sbar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.sbar-mark{position:absolute;top:-4px;width:2px;height:14px;background:var(--bd2);border-radius:1px}
+.snum{font-size:12px;font-weight:700;min-width:30px;text-align:right}
+.over{color:var(--gd)!important}.mid{color:var(--am)!important}.low{color:var(--rd)!important}
 
-/* ===== グラフ簡易バー ===== */
-.chart-wrap{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:20px;margin-bottom:24px}
-.chart-bar-group{display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:8px;border-bottom:1px solid #334155}
-.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.chart-bar-inner{width:100%;background:linear-gradient(180deg,#f97316,#ea580c);border-radius:4px 4px 0 0;transition:height .6s;min-height:4px}
-.chart-bar-label{font-size:10px;color:#64748b;margin-top:4px}
-.chart-bar-val{font-size:10px;color:#fb923c;font-weight:700}
+/* ===== CHARTS ===== */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-inner{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .5s ease}
+.bar-lbl{font-size:10px;color:var(--tx2);font-weight:500}
+.bar-val{font-size:10px;font-weight:700}
+.chart-axis{border-top:1px solid var(--bd);margin-top:4px}
+.chart-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-top:7px;padding:0 2px}
 
-/* ===== 自分の評価画面 ===== */
-.my-eval-hero{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:16px;padding:28px;margin-bottom:24px;text-align:center}
-.my-eval-score{font-size:64px;font-weight:900;line-height:1}
-.my-eval-label{font-size:14px;color:#64748b;margin-top:4px}
-.my-eval-bonus{font-size:18px;font-weight:700;margin-top:8px}
+/* ===== BADGES ===== */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;line-height:1.4}
+.badge-green{background:rgba(16,217,160,.10);color:#10d9a0;border:1px solid rgba(16,217,160,.22)}
+.badge-amber{background:rgba(251,191,36,.10);color:#fbbf24;border:1px solid rgba(251,191,36,.22)}
+.badge-red{background:rgba(245,78,110,.10);color:#f54e6e;border:1px solid rgba(245,78,110,.22)}
+.badge-blue{background:rgba(77,166,255,.10);color:#4da6ff;border:1px solid rgba(77,166,255,.22)}
+.badge-orange{background:rgba(249,115,22,.10);color:#fb923c;border:1px solid rgba(249,115,22,.22)}
+.badge-pending{background:rgba(249,115,22,.15);color:#fed7aa;border:1px solid rgba(249,115,22,.28);margin-left:auto;font-size:10px;padding:1px 6px}
 
-/* ===== 承認待ちバッジ ===== */
-.pending-badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#7c2d12;color:#fed7aa;font-size:11px;font-weight:700;margin-left:6px}
+/* ===== AVATAR ===== */
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
+.av-sm{width:24px;height:24px;font-size:10px}
+.av-md{width:32px;height:32px;font-size:13px}
+.av-lg{width:42px;height:42px;font-size:17px}
 
-/* ===== コメント欄 ===== */
-.comment-box{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:13px;resize:vertical;min-height:60px;margin-top:8px}
-.comment-box:focus{outline:none;border-color:#ea580c}
-.save-btn{padding:7px 16px;border-radius:8px;border:none;background:#334155;color:#e2e8f0;font-size:13px;cursor:pointer;margin-top:6px}
-.save-btn:hover{background:#475569}
+/* ===== EVAL CARD ===== */
+.eval-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;transition:border-color .15s}
+.eval-card:hover{border-color:var(--bd2)}
+.eval-head{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.eval-head:hover{background:rgba(249,115,22,.03)}
+.eval-body{padding:0 16px 14px;display:none}
+.eval-card.open .eval-body{display:block}
+.comment-box{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 10px;color:var(--tx);font-size:12px;resize:vertical;min-height:52px;margin-top:6px;font-family:inherit;transition:border-color .15s}
+.comment-box:focus{outline:none;border-color:var(--ac)}
+.btn{padding:6px 14px;border-radius:var(--rs);border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-approve{background:var(--ac);color:#fff}.btn-approve:hover{opacity:.85}
+.btn-save{background:var(--sf2);color:var(--tx);border:1px solid var(--bd)}.btn-save:hover{background:var(--sf3)}
+.approved-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:5px;background:rgba(16,217,160,.08);color:var(--gn);border:1px solid rgba(16,217,160,.22);font-size:12px;font-weight:600}
+
+/* ===== MY HERO ===== */
+.my-hero{background:linear-gradient(135deg,rgba(249,115,22,.08) 0%,rgba(6,12,23,0) 65%);border:1px solid rgba(249,115,22,.22);border-radius:var(--r);padding:28px;text-align:center;margin-bottom:14px}
+.divider{height:1px;background:var(--bd);margin:12px 0}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--tx3)}
 </style>
 </head>
 <body>
 
-<!-- ===== ログイン画面 ===== -->
+<!-- ===== LOGIN ===== -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">🍶</div>
+    <div class="login-mark">🍶</div>
     <div class="login-title">芦塚酒店</div>
-    <div class="login-sub">Sales Manager へようこそ</div>
-
+    <div class="login-sub">Sales Manager · 経営管理システム</div>
     <div class="role-grid" id="role-grid">
       <div class="role-btn" onclick="selectRole('president')" data-role="president"><span class="role-icon">👑</span>社長</div>
       <div class="role-btn" onclick="selectRole('manager')" data-role="manager"><span class="role-icon">🏪</span>店長</div>
       <div class="role-btn" onclick="selectRole('driver')" data-role="driver"><span class="role-icon">🚚</span>配送</div>
       <div class="role-btn" onclick="selectRole('sales')" data-role="sales"><span class="role-icon">📋</span>販売管理</div>
-      <div class="role-btn" onclick="selectRole('accounting')" data-role="accounting"><span class="role-icon">💰</span>会計管理</div>
-      <div class="role-btn" onclick="selectRole('store')" data-role="store"><span class="role-icon">🏬</span>店舗管理</div>
+      <div class="role-btn" onclick="selectRole('accounting')" data-role="accounting"><span class="role-icon">💰</span>経理管理</div>
+      <div class="role-btn" onclick="selectRole('store')" data-role="store"><span class="role-icon">🏬</span>店舗販売</div>
     </div>
-
     <div class="pin-wrap" id="pin-wrap" style="display:none">
       <div class="pin-label" id="pin-label">PINを入力してください</div>
       <div class="pin-dots" id="pin-dots">
-        <div class="pin-dot" id="d0"></div>
-        <div class="pin-dot" id="d1"></div>
-        <div class="pin-dot" id="d2"></div>
-        <div class="pin-dot" id="d3"></div>
+        <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
       </div>
       <div class="pin-pad">
-        <div class="pin-key" onclick="pinInput('1')">1</div>
-        <div class="pin-key" onclick="pinInput('2')">2</div>
-        <div class="pin-key" onclick="pinInput('3')">3</div>
-        <div class="pin-key" onclick="pinInput('4')">4</div>
-        <div class="pin-key" onclick="pinInput('5')">5</div>
-        <div class="pin-key" onclick="pinInput('6')">6</div>
-        <div class="pin-key" onclick="pinInput('7')">7</div>
-        <div class="pin-key" onclick="pinInput('8')">8</div>
-        <div class="pin-key" onclick="pinInput('9')">9</div>
-        <div class="pin-key" onclick="pinClear()" style="font-size:13px">戻す</div>
+        <div class="pin-key" onclick="pinInput('1')">1</div><div class="pin-key" onclick="pinInput('2')">2</div><div class="pin-key" onclick="pinInput('3')">3</div>
+        <div class="pin-key" onclick="pinInput('4')">4</div><div class="pin-key" onclick="pinInput('5')">5</div><div class="pin-key" onclick="pinInput('6')">6</div>
+        <div class="pin-key" onclick="pinInput('7')">7</div><div class="pin-key" onclick="pinInput('8')">8</div><div class="pin-key" onclick="pinInput('9')">9</div>
+        <div class="pin-key" onclick="pinClear()" style="font-size:13px;font-weight:600">←</div>
         <div class="pin-key" onclick="pinInput('0')">0</div>
-        <div class="pin-key" onclick="pinReset()" style="font-size:12px;color:#f87171">消去</div>
+        <div class="pin-key" onclick="pinReset()" style="font-size:11px;color:#f54e6e;font-weight:600">CLR</div>
       </div>
       <div class="login-err" id="login-err"></div>
     </div>
   </div>
 </div>
 
-<!-- ===== メイン画面 ===== -->
+<!-- ===== MAIN APP ===== -->
 <div id="app-screen" style="display:none;flex-direction:column;min-height:100vh">
   <div class="app-header">
-    <div class="app-header-logo">📊 Sales Manager</div>
-    <div class="app-header-user" id="header-user"></div>
-    <div class="app-header-role" id="header-role"></div>
-    <button class="logout-btn" onclick="logout()">ログアウト</button>
+    <div class="hbrand">
+      <div class="hbrand-mark">📊</div>
+      <div class="hbrand-text">芦塚酒店</div>
+    </div>
+    <div class="hdiv"></div>
+    <div class="hkpi-bar" id="header-kpi"></div>
+    <div class="hright">
+      <span class="user-name" id="header-user"></span>
+      <span class="role-tag" id="header-role"></span>
+      <button class="logout-btn" onclick="logout()">ログアウト</button>
+    </div>
   </div>
   <div class="app-body">
     <div class="sidebar" id="sidebar"></div>
@@ -181,548 +236,774 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#0f172a;color
 </div>
 
 <script>
-// ===== 設定 =====
-const API = 'http://localhost:3001';
+const API='http://localhost:3001';
+const PINS={president:'1234',manager:'5678',driver:'1111',sales:'2222',accounting:'3333',store:'4444'};
+const ROLE_NAMES={president:'社長',manager:'店長',driver:'配送',sales:'販売管理',accounting:'経理管理',store:'店舗販売'};
+let currentRole=null,pinBuffer='',employees=[],approvals={};
 
-// PINマスタ（変更可能）
-const PINS = {
-  president:  '1234',
-  manager:    '5678',
-  driver:     '1111',
-  sales:      '2222',
-  accounting: '3333',
-  store:      '4444',
-};
-
-const ROLE_NAMES = {
-  president:'社長', manager:'店長', driver:'配送',
-  sales:'販売管理', accounting:'会計管理', store:'店舗管理',
-};
-
-// ===== 状態 =====
-let currentRole = null;
-let pinBuffer = '';
-let employees = [];
-let approvals = {}; // taskId → {managerComment, presidentApproved}
-
-// ===== PIN ログイン =====
-function selectRole(role) {
-  currentRole = role;
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+/* ─── ログイン ─── */
+function selectRole(role){
+  currentRole=role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelector(`[data-role="${role}"]`).classList.add('selected');
-  document.getElementById('pin-wrap').style.display = '';
-  document.getElementById('pin-label').textContent = `${ROLE_NAMES[role]} のPINを入力`;
+  document.getElementById('pin-wrap').style.display='';
+  document.getElementById('pin-label').textContent=ROLE_NAMES[role]+' のPINを入力';
   pinReset();
 }
-
-function pinInput(digit) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += digit;
-  updatePinDots();
-  if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+function pinInput(d){if(pinBuffer.length>=4)return;pinBuffer+=d;updateDots();if(pinBuffer.length===4)setTimeout(checkPin,150);}
+function pinClear(){pinBuffer=pinBuffer.slice(0,-1);updateDots();}
+function pinReset(){pinBuffer='';updateDots();document.getElementById('login-err').textContent='';}
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuffer.length);}
+function checkPin(){
+  if(pinBuffer===PINS[currentRole]){loginSuccess();}
+  else{document.getElementById('login-err').textContent='PINが違います';pinReset();}
 }
-
-function pinClear() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updatePinDots();
-}
-
-function pinReset() {
-  pinBuffer = '';
-  updatePinDots();
-  document.getElementById('login-err').textContent = '';
-}
-
-function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById(`d${i}`).classList.toggle('filled', i < pinBuffer.length);
-  }
-}
-
-function checkPin() {
-  if (pinBuffer === PINS[currentRole]) {
-    loginSuccess();
-  } else {
-    document.getElementById('login-err').textContent = 'PINが違います。もう一度入力してください。';
-    pinReset();
-  }
-}
-
-function loginSuccess() {
-  document.getElementById('login-screen').style.display = 'none';
-  const app = document.getElementById('app-screen');
-  app.style.display = 'flex';
-  document.getElementById('header-role').textContent = ROLE_NAMES[currentRole];
-  document.getElementById('header-user').textContent = getRolePerson(currentRole);
+function loginSuccess(){
+  document.getElementById('login-screen').style.display='none';
+  const app=document.getElementById('app-screen');
+  app.style.display='flex';
+  document.getElementById('header-role').textContent=ROLE_NAMES[currentRole];
+  document.getElementById('header-user').textContent=getRolePerson(currentRole);
+  renderHeaderKpi();
   buildSidebar();
   loadData();
 }
-
-function getRolePerson(role) {
-  const map = {president:'芦塚 義幸', manager:'店長', driver:'', sales:'酒井 さやか', accounting:'会計担当', store:'店舗担当'};
-  return map[role] || '';
+function getRolePerson(r){
+  return{president:'芦塚 義幸',manager:'赤川 秀敏',driver:'（配送員）',sales:'川原 未香',accounting:'芦塚 あかね',store:'（店舗販売）'}[r]||'';
+}
+function logout(){
+  currentRole=null;pinBuffer='';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('pin-wrap').style.display='none';
 }
 
-function logout() {
-  currentRole = null;
-  pinBuffer = '';
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('pin-wrap').style.display = 'none';
+/* ─── ヘッダーKPI ─── */
+function renderHeaderKpi(){
+  if(!['president','manager'].includes(currentRole)){document.getElementById('header-kpi').innerHTML='';return;}
+  const s=MOCK_MONTHLY_SALES[5],prev=MOCK_MONTHLY_SALES[4];
+  const diff=((s-prev)/prev*100).toFixed(1);
+  const achv=(s/22000000*100).toFixed(1);
+  const totalDeliv=MOCK_DELIVERY.reduce((a,d)=>a+d.deliveries,0);
+  const totCont=MOCK_DELIVERY.reduce((a,d)=>a+d.containers,0);
+  const totContT=MOCK_DELIVERY.reduce((a,d)=>a+d.containerTarget,0);
+  const contRate=(totCont/totContT*100).toFixed(0);
+  document.getElementById('header-kpi').innerHTML=`
+    <div class="hkpi"><div class="hkpi-v">¥${(s/10000).toFixed(0)}万</div><div class="hkpi-l">今月売上</div></div>
+    <div class="hkpi"><div class="hkpi-v ${+diff>=0?'up':'down'}">${+diff>=0?'▲':'▼'}${Math.abs(diff)}%</div><div class="hkpi-l">前月比</div></div>
+    <div class="hkpi"><div class="hkpi-v ${+achv>=100?'gold':'ok'}">${achv}%</div><div class="hkpi-l">目標達成率</div></div>
+    <div class="hkpi"><div class="hkpi-v">${totalDeliv}件</div><div class="hkpi-l">配送件数</div></div>
+    <div class="hkpi"><div class="hkpi-v ${+contRate>=90?'ok':'warn'}">${contRate}%</div><div class="hkpi-l">空容器回収率</div></div>
+    <div class="hkpi"><div class="hkpi-v warn">${getPendingCount()}件</div><div class="hkpi-l">承認待ち</div></div>`;
 }
 
-// ===== サイドバー構築 =====
-const NAV_CONFIG = {
-  president: [
-    {id:'dashboard', icon:'📈', label:'ダッシュボード'},
-    {id:'ranking',   icon:'🏆', label:'ランキング'},
-    {id:'evaluations', icon:'⭐', label:'評価承認'},
-    {id:'delivery',  icon:'🚚', label:'配送実績'},
-    {id:'store',     icon:'🏬', label:'店舗実績'},
-    {id:'orders',    icon:'📋', label:'発注サマリー'},
-    {id:'employees', icon:'👥', label:'社員管理'},
+/* ─── サイドバー ─── */
+const NAV={
+  president:[
+    {id:'dashboard',   icon:'📈',label:'ダッシュボード',  sec:'経営分析'},
+    {id:'delivery_all',icon:'🚚',label:'配送実績（全体）'},
+    {id:'delivery_emp',icon:'👤',label:'配送実績（個人）'},
+    {id:'store',       icon:'🏬',label:'店舗実績'},
+    {id:'ranking',     icon:'🏆',label:'ランキング',      sec:'評価・人事'},
+    {id:'evaluations', icon:'⭐',label:'評価承認',badge:true},
+    {id:'orders',      icon:'📋',label:'発注サマリー',    sec:'業務管理'},
+    {id:'employees',   icon:'👥',label:'社員管理'},
   ],
-  manager: [
-    {id:'dashboard', icon:'📈', label:'ダッシュボード'},
-    {id:'ranking',   icon:'🏆', label:'ランキング'},
-    {id:'evaluations', icon:'⭐', label:'評価レビュー'},
-    {id:'delivery',  icon:'🚚', label:'配送実績'},
-    {id:'store',     icon:'🏬', label:'店舗実績'},
-    {id:'orders',    icon:'📋', label:'発注サマリー'},
+  manager:[
+    {id:'dashboard',   icon:'📈',label:'ダッシュボード',  sec:'経営分析'},
+    {id:'delivery_all',icon:'🚚',label:'配送実績（全体）'},
+    {id:'delivery_emp',icon:'👤',label:'配送実績（個人）'},
+    {id:'store',       icon:'🏬',label:'店舗実績'},
+    {id:'ranking',     icon:'🏆',label:'ランキング',      sec:'評価'},
+    {id:'evaluations', icon:'⭐',label:'評価レビュー',badge:true},
+    {id:'orders',      icon:'📋',label:'発注サマリー',    sec:'業務'},
   ],
-  driver:     [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'mydelivery', icon:'🚚', label:'自分の実績'}],
-  sales:      [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'saleswork',  icon:'📋', label:'業務状況'}],
-  accounting: [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'accwork',   icon:'💰', label:'業務状況'}],
-  store:      [{id:'myeval', icon:'⭐', label:'自分の評価'}, {id:'storework', icon:'🏬', label:'業務状況'}],
+  driver:     [{id:'myeval',icon:'⭐',label:'自分の評価',sec:'マイページ'},{id:'mydelivery',icon:'🚚',label:'自分の実績'}],
+  sales:      [{id:'myeval',icon:'⭐',label:'自分の評価',sec:'マイページ'},{id:'saleswork', icon:'📋',label:'業務状況'}],
+  accounting: [{id:'myeval',icon:'⭐',label:'自分の評価',sec:'マイページ'},{id:'accwork',   icon:'💰',label:'業務状況'}],
+  store:      [{id:'myeval',icon:'⭐',label:'自分の評価',sec:'マイページ'},{id:'storework', icon:'🏬',label:'業務状況'}],
 };
-
-function buildSidebar() {
-  const items = NAV_CONFIG[currentRole] || [];
-  document.getElementById('sidebar').innerHTML = items.map((n,i) =>
-    `<div class="nav-item${i===0?' active':''}" onclick="showPage('${n.id}',this)">
-       <span class="ni">${n.icon}</span>${n.label}
-       ${n.id==='evaluations' && getPendingCount()>0 ? `<span class="pending-badge">${getPendingCount()}</span>` : ''}
-     </div>`
-  ).join('') + '<div class="nav-sep"></div>';
-  showPage(items[0].id, document.querySelector('.nav-item'));
+function buildSidebar(){
+  const items=NAV[currentRole]||[];
+  let html='';
+  items.forEach((n,i)=>{
+    if(n.sec)html+=`<div class="nav-section">${n.sec}</div>`;
+    const pend=n.badge&&getPendingCount()>0?`<span class="badge badge-pending">${getPendingCount()}</span>`:'';
+    html+=`<div class="nav-item${i===0?' active':''}" onclick="showPage('${n.id}',this)" id="nav-${n.id}">
+      <span class="ni">${n.icon}</span><span style="flex:1">${n.label}</span>${pend}</div>`;
+  });
+  document.getElementById('sidebar').innerHTML=html+'<div class="nav-sep"></div>';
+  showPage(items[0].id,document.querySelector('.nav-item'));
+}
+function getPendingCount(){return MOCK_EVALS['2026-Q1'].filter(e=>!approvals[e.id]?.presidentApproved).length;}
+function showPage(id,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderPage(id);
 }
 
-function getPendingCount() {
-  return MOCK_EVALS['2026-Q1'].filter(e => !approvals[e.id]?.presidentApproved).length;
-}
-
-function showPage(pageId, el) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderPage(pageId);
-}
-
-// ===== データ読み込み =====
-async function loadData() {
-  try {
-    const res = await fetch(`${API}/api/employees`);
-    employees = (await res.json()).data || [];
-  } catch {
-    employees = MOCK_EVALS['2026-Q1'].map(e => ({
-      id:e.id, name:e.name, color:e.color, avatar:e.avatar,
-      role: e.role==='配送'?'driver':e.role==='営業'?'sales':e.role==='管理職'?'manager':'driver'
-    }));
+/* ─── データ ─── */
+async function loadData(){
+  try{
+    const res=await fetch(`${API}/api/employees`);
+    employees=(await res.json()).data||[];
+  }catch{
+    employees=MOCK_EVALS['2026-Q1'].map(e=>({id:e.id,name:e.name,color:e.color,avatar:e.avatar,role:e.role}));
   }
 }
 
-// ===== ページレンダリング =====
-function renderPage(pageId) {
-  const c = document.getElementById('content');
-  switch(pageId) {
-    case 'dashboard':   c.innerHTML = renderDashboard(); break;
-    case 'ranking':     c.innerHTML = renderRanking(); break;
-    case 'evaluations': c.innerHTML = renderEvaluations(); break;
-    case 'delivery':    c.innerHTML = renderDelivery(); break;
-    case 'store':       c.innerHTML = renderStoreStats(); break;
-    case 'orders':      c.innerHTML = renderOrders(); break;
-    case 'employees':   c.innerHTML = renderEmployees(); break;
-    case 'myeval':      c.innerHTML = renderMyEval(); break;
-    case 'mydelivery':  c.innerHTML = renderMyDelivery(); break;
-    case 'saleswork':   c.innerHTML = renderSalesWork(); break;
-    case 'accwork':     c.innerHTML = renderAccWork(); break;
-    case 'storework':   c.innerHTML = renderStoreWork(); break;
-    default:            c.innerHTML = '<p style="color:#64748b;padding:40px">準備中</p>';
-  }
-}
+/* ─── モックデータ ─── */
+const MOCK_EVALS={'2026-Q1':[
+  {id:'emp_tan',name:'谷口 亮介',  role:'配送',    color:'#3b82f6',avatar:'谷',total:118,newProductCount:9, newProductTarget:7, newProductScore:129,avgGrossMargin:32,marginTarget:28,marginScore:114,settlementRate:78,settlementTarget:70,settlementScore:111,prevScore:110},
+  {id:'emp_oku',name:'奥田 玲晃',  role:'配送',    color:'#22c55e',avatar:'奥',total:103,newProductCount:7, newProductTarget:7, newProductScore:100,avgGrossMargin:30,marginTarget:28,marginScore:107,settlementRate:71,settlementTarget:70,settlementScore:101,prevScore:95},
+  {id:'emp_abi',name:'阿比留 徹',  role:'配送',    color:'#f59e0b',avatar:'阿',total:99, newProductCount:6, newProductTarget:7, newProductScore:86, avgGrossMargin:29,marginTarget:28,marginScore:104,settlementRate:75,settlementTarget:70,settlementScore:107,prevScore:92},
+  {id:'emp_aka',name:'赤川 秀敏',  role:'店長',    color:'#ef4444',avatar:'赤',total:112,newProductCount:9, newProductTarget:8, newProductScore:113,avgGrossMargin:31,marginTarget:28,marginScore:111,settlementRate:79,settlementTarget:70,settlementScore:113,prevScore:105},
+  {id:'emp_ima',name:'今村 淳子',  role:'店舗販売',color:'#a855f7',avatar:'今',total:88, newProductCount:5, newProductTarget:6, newProductScore:83, avgGrossMargin:26,marginTarget:28,marginScore:93, settlementRate:63,settlementTarget:70,settlementScore:90, prevScore:82},
+  {id:'emp_kaw',name:'川原 未香',  role:'販売管理',color:'#ec4899',avatar:'川',total:95, newProductCount:6, newProductTarget:7, newProductScore:86, avgGrossMargin:28,marginTarget:28,marginScore:100,settlementRate:68,settlementTarget:70,settlementScore:97, prevScore:88},
+  {id:'emp_ash',name:'芦塚 義幸',  role:'管理職',  color:'#06b6d4',avatar:'芦',total:108,newProductCount:8, newProductTarget:7, newProductScore:114,avgGrossMargin:29,marginTarget:28,marginScore:104,settlementRate:76,settlementTarget:70,settlementScore:109,prevScore:102},
+  {id:'emp_ake',name:'芦塚 あかね',role:'経理管理',color:'#84cc16',avatar:'あ',total:101,newProductCount:5, newProductTarget:5, newProductScore:100,avgGrossMargin:30,marginTarget:28,marginScore:107,settlementRate:72,settlementTarget:70,settlementScore:103,prevScore:96},
+  {id:'emp_sak',name:'酒井 さやか',role:'店舗販売',color:'#f97316',avatar:'酒',total:76, newProductCount:4, newProductTarget:6, newProductScore:67, avgGrossMargin:23,marginTarget:28,marginScore:82, settlementRate:55,settlementTarget:70,settlementScore:79, prevScore:72},
+]};
 
-// ===== モックデータ =====
-const MOCK_EVALS = {
-  '2026-Q1': [
-    { id:'emp_tan', name:'谷口 亮介',   role:'配送', color:'#3b82f6', avatar:'谷', total:118, newProductCount:9,  newProductTarget:7,  newProductScore:129, avgGrossMargin:32, marginTarget:28, marginScore:114, settlementRate:78, settlementTarget:70, settlementScore:111, prevScore:110 },
-    { id:'emp_oku', name:'奥田 玲晃',   role:'配送', color:'#22c55e', avatar:'奥', total:103, newProductCount:7,  newProductTarget:7,  newProductScore:100, avgGrossMargin:30, marginTarget:28, marginScore:107, settlementRate:71, settlementTarget:70, settlementScore:101, prevScore:95  },
-    { id:'emp_abi', name:'阿比留 徹',   role:'配送', color:'#f59e0b', avatar:'阿', total:99,  newProductCount:6,  newProductTarget:7,  newProductScore:86,  avgGrossMargin:29, marginTarget:28, marginScore:104, settlementRate:75, settlementTarget:70, settlementScore:107, prevScore:92  },
-    { id:'emp_aka', name:'赤川 秀敏',   role:'配送', color:'#ef4444', avatar:'赤', total:80,  newProductCount:4,  newProductTarget:7,  newProductScore:57,  avgGrossMargin:27, marginTarget:28, marginScore:96,  settlementRate:60, settlementTarget:70, settlementScore:86,  prevScore:75  },
-    { id:'emp_ima', name:'今村 淳子',   role:'配送', color:'#a855f7', avatar:'今', total:74,  newProductCount:3,  newProductTarget:6,  newProductScore:50,  avgGrossMargin:26, marginTarget:28, marginScore:93,  settlementRate:55, settlementTarget:70, settlementScore:79,  prevScore:70  },
-    { id:'emp_kaw', name:'川原 未香',   role:'配送', color:'#ec4899', avatar:'川', total:64,  newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:25, marginTarget:28, marginScore:89,  settlementRate:50, settlementTarget:70, settlementScore:71,  prevScore:60  },
-    { id:'emp_ash', name:'芦塚 義幸',   role:'管理職',color:'#06b6d4', avatar:'芦', total:61, newProductCount:2,  newProductTarget:6,  newProductScore:33,  avgGrossMargin:24, marginTarget:28, marginScore:86,  settlementRate:45, settlementTarget:70, settlementScore:64,  prevScore:55  },
-    { id:'emp_sak', name:'酒井 さやか', role:'販売管理',color:'#84cc16',avatar:'酒', total:53, newProductCount:1, newProductTarget:5,  newProductScore:20,  avgGrossMargin:23, marginTarget:28, marginScore:82,  settlementRate:40, settlementTarget:70, settlementScore:57,  prevScore:50  },
-  ],
-};
-
-const MOCK_DELIVERY = [
-  { id:'emp_tan', name:'谷口 亮介', color:'#3b82f6', avatar:'谷', deliveries:142, containers:38, containerTarget:45, sales:4280000, salesTarget:4000000, margin:32, newProducts:9, claims:0, absent:0, late:0 },
-  { id:'emp_oku', name:'奥田 玲晃', color:'#22c55e', avatar:'奥', deliveries:135, containers:35, containerTarget:40, sales:3950000, salesTarget:4000000, margin:30, newProducts:7, claims:1, absent:0, late:1 },
-  { id:'emp_abi', name:'阿比留 徹', color:'#f59e0b', avatar:'阿', deliveries:128, containers:32, containerTarget:40, sales:3820000, salesTarget:4000000, margin:29, newProducts:6, claims:0, absent:1, late:0 },
-  { id:'emp_aka', name:'赤川 秀敏', color:'#ef4444', avatar:'赤', deliveries:115, containers:25, containerTarget:35, sales:3100000, salesTarget:3500000, margin:27, newProducts:4, claims:2, absent:0, late:2 },
-  { id:'emp_ima', name:'今村 淳子', color:'#a855f7', avatar:'今', deliveries:108, containers:22, containerTarget:32, sales:2900000, salesTarget:3500000, margin:26, newProducts:3, claims:1, absent:1, late:1 },
-  { id:'emp_kaw', name:'川原 未香', color:'#ec4899', avatar:'川', deliveries:98,  containers:18, containerTarget:30, sales:2600000, salesTarget:3000000, margin:25, newProducts:2, claims:0, absent:0, late:3 },
+const MOCK_DELIVERY=[
+  {id:'emp_tan',name:'谷口 亮介',color:'#3b82f6',avatar:'谷',deliveries:142,containers:38,containerTarget:42,sales:4280000,salesTarget:4000000,margin:32,newProducts:9,targetProducts:5,claims:0,absent:0,late:0,accountsReceivable:280000,receivableTarget:300000,vehicleCheck:true},
+  {id:'emp_oku',name:'奥田 玲晃',color:'#22c55e',avatar:'奥',deliveries:135,containers:35,containerTarget:40,sales:3950000,salesTarget:4000000,margin:30,newProducts:7,targetProducts:4,claims:1,absent:0,late:1,accountsReceivable:310000,receivableTarget:320000,vehicleCheck:true},
+  {id:'emp_abi',name:'阿比留 徹',color:'#f59e0b',avatar:'阿',deliveries:128,containers:32,containerTarget:38,sales:3820000,salesTarget:4000000,margin:29,newProducts:6,targetProducts:3,claims:0,absent:1,late:0,accountsReceivable:290000,receivableTarget:300000,vehicleCheck:true},
 ];
 
-const MOCK_STORE = { sales:2850000, salesTarget:3000000, waste:85000, inventory:4200000, inventoryDiff:52000 };
+const MOCK_STORE={sales:2850000,salesTarget:3000000,waste:85000,wasteItems:12,inventory:4200000,inventoryDiff:52000,customerCount:380,newCustomer:8,returnCustomer:12};
+const MOCK_MONTHS=['10月','11月','12月','1月','2月','3月'];
+const MOCK_MONTHLY_SALES=[18200000,19500000,22800000,17600000,18900000,21400000];
+const MOCK_MONTHLY_MARGIN=[27.2,27.8,29.1,26.8,27.5,28.2];
+const MOCK_SALES_ORDERS=[
+  {date:'2026-03-28',customer:'山田酒店',  emp:'谷口 亮介',amount:248000,status:'delivered', items:5,margin:31.2},
+  {date:'2026-03-27',customer:'佐藤商店',  emp:'奥田 玲晃',amount:186000,status:'delivered', items:3,margin:29.8},
+  {date:'2026-03-27',customer:'田中食品',  emp:'阿比留 徹',amount:312000,status:'in_transit',items:7,margin:28.5},
+  {date:'2026-03-26',customer:'鈴木酒販',  emp:'川原 未香',amount:94000, status:'delivered', items:2,margin:26.1},
+  {date:'2026-03-26',customer:'高橋商事',  emp:'谷口 亮介',amount:427000,status:'delivered', items:9,margin:27.3},
+  {date:'2026-03-25',customer:'伊藤酒店',  emp:'奥田 玲晃',amount:153000,status:'delivered', items:4,margin:24.8},
+  {date:'2026-03-25',customer:'渡辺商店',  emp:'川原 未香',amount:198000,status:'delivered', items:4,margin:32.1},
+  {date:'2026-03-24',customer:'中村食品',  emp:'阿比留 徹',amount:265000,status:'delivered', items:6,margin:30.4},
+];
+const MOCK_ACCOUNTS=[
+  {customer:'山田酒店',balance:280000,due:'2026-04-10',status:'normal', overdue:0},
+  {customer:'佐藤商店',balance:186000,due:'2026-04-15',status:'normal', overdue:0},
+  {customer:'田中食品',balance:420000,due:'2026-03-31',status:'overdue',overdue:6},
+  {customer:'鈴木酒販',balance:94000, due:'2026-04-20',status:'normal', overdue:0},
+  {customer:'高橋商事',balance:156000,due:'2026-04-05',status:'warning',overdue:0},
+  {customer:'伊藤酒店',balance:312000,due:'2026-03-28',status:'overdue',overdue:9},
+];
 
-const MOCK_MONTHS = ['10月','11月','12月','1月','2月','3月'];
-const MOCK_MONTHLY_SALES = [18200000, 19500000, 22800000, 17600000, 18900000, 21400000];
+/* ─── ユーティリティ ─── */
+function bonusLabel(s){if(s>=120)return'×1.30';if(s>=110)return'×1.20';if(s>=100)return'×1.10';if(s>=85)return'×1.05';return'×1.00';}
+const BAR_MAX=130;
+function sbar(score,w){
+  const pct=Math.min(score,BAR_MAX)/BAR_MAX*100;
+  const mp=(100/BAR_MAX*100).toFixed(1);
+  const fill=score>=100?'linear-gradient(90deg,#d97706,#fbbf24)':'linear-gradient(90deg,#f97316,#ea580c)';
+  const cls=score>=100?'over':score>=85?'ok':score>=70?'mid':'low';
+  return `<div class="sbar-wrap"${w?` style="width:${w}"`:''}><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${fill}"></div><div class="sbar-mark" style="left:${mp}%"></div></div><span class="snum ${cls}">${score}</span></div>`;
+}
+function fmtMoney(v){return v>=10000?'¥'+(v/10000).toFixed(0)+'万':'¥'+v.toLocaleString();}
+function rateCls(r,good=100){return+r>=good?'ok':+r>=good*0.9?'warn':'down';}
+function pageHd(title,sub){return`<div class="page-hd"><h2>${title}</h2>${sub?`<span>${sub}</span>`:''}</div>`;}
 
-function bonusLabel(score) {
-  if (score>=120) return '×1.30';
-  if (score>=110) return '×1.20';
-  if (score>=100) return '×1.10';
-  if (score>=85)  return '×1.05';
-  return '×1.00';
+/* ─── ルーティング ─── */
+function renderPage(id){
+  const c=document.getElementById('content');
+  const map={dashboard:renderDashboard,delivery_all:renderDeliveryAll,delivery_emp:renderDeliveryEmp,store:renderStore,ranking:renderRanking,evaluations:renderEvaluations,orders:renderOrders,employees:renderEmployees,myeval:renderMyEval,mydelivery:renderMyDelivery,saleswork:renderSalesWork,accwork:renderAccWork,storework:renderStoreWork};
+  c.innerHTML=(map[id]||renderDashboard)();
 }
 
-const BAR_MAX = 130;
-function scoreBar(score, width) {
-  const pct     = Math.min(score, BAR_MAX) / BAR_MAX * 100;
-  const markPct = (100 / BAR_MAX * 100).toFixed(1);
-  const fill    = score>=100 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#f97316,#ea580c)';
-  const cls     = score>=100 ? 'score-over' : score>=85 ? 'score-ok' : 'score-low';
-  return `<div class="sbar-wrap"${width?` style="width:${width}"`:''}><div class="sbar"><div class="sbar-fill" style="width:${pct.toFixed(1)}%;background:${fill}"></div><div class="sbar-mark" style="left:${markPct}%"></div></div><span class="sbar-num ${cls}">${score}</span></div>`;
-}
-
-// ===== ダッシュボード =====
-function renderDashboard() {
-  const totalSales = MOCK_MONTHLY_SALES[5];
-  const prevSales  = MOCK_MONTHLY_SALES[4];
-  const diff       = ((totalSales - prevSales) / prevSales * 100).toFixed(1);
-  const target     = 22000000;
-  const achv       = (totalSales / target * 100).toFixed(1);
-  const avgMargin  = (MOCK_DELIVERY.reduce((s,d)=>s+d.margin,0)/MOCK_DELIVERY.length).toFixed(1);
-  const maxH       = Math.max(...MOCK_MONTHLY_SALES);
-
-  return `
-  <div class="sec-title">経営ダッシュボード <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
-  <div class="kpi-grid">
-    <div class="kpi-card highlight">
-      <div class="kpi-label">今月売上</div>
-      <div class="kpi-value">¥${(totalSales/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
-      <div class="kpi-sub kpi-${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'}${Math.abs(diff)}% 前月比</div>
+/* ══════════════════════════════════════════
+   ダッシュボード
+══════════════════════════════════════════ */
+function renderDashboard(){
+  const s=MOCK_MONTHLY_SALES[5],prev=MOCK_MONTHLY_SALES[4];
+  const diff=((s-prev)/prev*100).toFixed(1);
+  const achv=(s/22000000*100).toFixed(1);
+  const avgM=(MOCK_DELIVERY.reduce((a,d)=>a+d.margin,0)/MOCK_DELIVERY.length).toFixed(1);
+  const maxH=Math.max(...MOCK_MONTHLY_SALES);
+  const minM=Math.min(...MOCK_MONTHLY_MARGIN),maxM=Math.max(...MOCK_MONTHLY_MARGIN);
+  const totalDeliv=MOCK_DELIVERY.reduce((a,d)=>a+d.deliveries,0);
+  const totalCont=MOCK_DELIVERY.reduce((a,d)=>a+d.containers,0);
+  const totalContT=MOCK_DELIVERY.reduce((a,d)=>a+d.containerTarget,0);
+  const totalSales=MOCK_DELIVERY.reduce((a,d)=>a+d.sales,0);
+  const totalSalesT=MOCK_DELIVERY.reduce((a,d)=>a+d.salesTarget,0);
+  const totalClaims=MOCK_DELIVERY.reduce((a,d)=>a+d.claims,0);
+  const overdueAcc=MOCK_ACCOUNTS.filter(a=>a.status==='overdue');
+  const overdueTotal=overdueAcc.reduce((a,b)=>a+b.balance,0);
+  return pageHd('ダッシュボード','2026年3月度 · 下期第6月')+`
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi accent">
+      <div class="kpi-l">💴 今月売上</div>
+      <div class="kpi-v">${fmtMoney(s)}</div>
+      <div class="kpi-sub ${+diff>=0?'up':'down'}">${+diff>=0?'▲':'▼'}${Math.abs(diff)}% 前月比 &nbsp;|&nbsp; 達成率 <b>${achv}%</b></div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">目標達成率</div>
-      <div class="kpi-value" style="color:${achv>=100?'#f59e0b':'#4ade80'}">${achv}<span style="font-size:14px">%</span></div>
-      <div class="kpi-sub kpi-neu">目標 ¥${(target/10000).toFixed(0)}万</div>
+    <div class="kpi ${+achv>=100?'amber':''}">
+      <div class="kpi-l">🎯 目標達成率</div>
+      <div class="kpi-v ${+achv>=100?'gold':'ok'}">${achv}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">目標 ¥2,200万 ／ 残 ${fmtMoney(22000000-s)}</div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">平均粗利率</div>
-      <div class="kpi-value">${avgMargin}<span style="font-size:14px">%</span></div>
-      <div class="kpi-sub kpi-neu">目標 28%</div>
+    <div class="kpi">
+      <div class="kpi-l">📊 平均粗利率（配送）</div>
+      <div class="kpi-v ${+avgM>=28?'ok':'warn'}">${avgM}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">目標 28% ／ 最高 ${Math.max(...MOCK_DELIVERY.map(d=>d.margin))}%</div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">評価承認待ち</div>
-      <div class="kpi-value" style="color:#fb923c">${getPendingCount()}<span style="font-size:14px">件</span></div>
-      <div class="kpi-sub kpi-neu">クリックで確認</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">配送件数（今月）</div>
-      <div class="kpi-value">${MOCK_DELIVERY.reduce((s,d)=>s+d.deliveries,0)}</div>
-      <div class="kpi-sub kpi-neu">全社員合計</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">空容器回収率</div>
-      <div class="kpi-value">${(MOCK_DELIVERY.reduce((s,d)=>s+d.containers,0)/MOCK_DELIVERY.reduce((s,d)=>s+d.containerTarget,0)*100).toFixed(0)}<span style="font-size:14px">%</span></div>
-      <div class="kpi-sub kpi-neu">目標 100%</div>
+    <div class="kpi ${getPendingCount()>0?'red':'green'}">
+      <div class="kpi-l">⭐ 評価承認待ち</div>
+      <div class="kpi-v warn">${getPendingCount()}<span style="font-size:14px">件</span></div>
+      <div class="kpi-sub">${MOCK_EVALS['2026-Q1'].length-getPendingCount()}件 済 ／ 計${MOCK_EVALS['2026-Q1'].length}件</div>
     </div>
   </div>
-
-  <div class="chart-wrap">
-    <div class="sec-title" style="margin-bottom:12px">売上推移（月次）</div>
-    <div class="chart-bar-group">
-      ${MOCK_MONTHS.map((m,i) => {
-        const h = Math.round(MOCK_MONTHLY_SALES[i] / maxH * 100);
-        return `<div class="chart-bar-col">
-          <div class="chart-bar-val">¥${(MOCK_MONTHLY_SALES[i]/10000).toFixed(0)}万</div>
-          <div class="chart-bar-inner" style="height:${h}%"></div>
-          <div class="chart-bar-label">${m}</div>
-        </div>`;
-      }).join('')}
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi">
+      <div class="kpi-l">🚚 配送件数（今月）</div>
+      <div class="kpi-v">${totalDeliv}</div>
+      <div class="kpi-sub">3名合計 ／ 平均 ${Math.round(totalDeliv/3)}件/人</div>
+    </div>
+    <div class="kpi ${(totalCont/totalContT*100)>=90?'green':'red'}">
+      <div class="kpi-l">🪣 空容器回収率</div>
+      <div class="kpi-v ${rateCls(totalCont/totalContT*100)}">${(totalCont/totalContT*100).toFixed(0)}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">${totalCont}本 ／ 目標 ${totalContT}本</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">📦 配送売上合計</div>
+      <div class="kpi-v">${fmtMoney(totalSales)}</div>
+      <div class="kpi-sub ${rateCls(totalSales/totalSalesT*100)}">${(totalSales/totalSalesT*100).toFixed(0)}% ／ 目標 ${fmtMoney(totalSalesT)}</div>
+    </div>
+    <div class="kpi ${totalClaims>0?'red':'green'}">
+      <div class="kpi-l">⚠️ クレーム ／ 未収超過</div>
+      <div class="kpi-v" style="color:${totalClaims>0?'#f54e6e':'#10d9a0'}">${totalClaims}件</div>
+      <div class="kpi-sub" style="color:#f54e6e">未収超過 ${fmtMoney(overdueTotal)}（${overdueAcc.length}社）</div>
     </div>
   </div>
-
-  <div class="sec-title">社員スコア一覧</div>
-  <div class="data-table-wrap">
-    <table class="data-table">
-      <thead><tr><th>社員</th><th>役割</th><th>スコア</th><th>前期比</th><th>賞与倍率</th></tr></thead>
-      <tbody>
-        ${MOCK_EVALS['2026-Q1'].sort((a,b)=>b.total-a.total).map(e => {
-          const diff = e.total - e.prevScore;
-          const diffStr = (diff>=0?'+':'')+diff;
-          const diffCls = diff>=0?'score-ok':'score-low';
-          return `<tr>
-            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:${e.color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${e.avatar}</div>${e.name}</div></td>
-            <td><span style="font-size:11px;color:#94a3b8">${e.role}</span></td>
-            <td>${scoreBar(e.total, '160px')}</td>
-            <td><span class="${diffCls}" style="font-weight:700">${diffStr}</span></td>
-            <td><span class="bonus-badge">${bonusLabel(e.total)}</span></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
-  </div>`;
-}
-
-// ===== ランキング =====
-function renderRanking() {
-  const data = MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>b.total-a.total);
-  const medals = ['🥇','🥈','🥉'];
-  return `
-  <div class="sec-title">今月のランキング</div>
-  <div style="display:flex;flex-direction:column;gap:10px">
-    ${data.map((e,i) => {
-      const diff = e.total - e.prevScore;
-      return `<div class="eval-card" onclick="toggleCard(this)">
-        <div class="eval-card-header">
-          <div style="width:32px;height:32px;border-radius:50%;background:${i<3?['#f59e0b','#94a3b8','#b45309'][i]:'#1e293b'};display:flex;align-items:center;justify-content:center;font-size:${i<3?18:13}px;font-weight:900;color:#fff;flex-shrink:0">${i<3?medals[i]:i+1}</div>
-          <div class="eval-avatar" style="background:${e.color}">${e.avatar}</div>
-          <div style="flex:1">
-            <div class="eval-name">${e.name}<span class="bonus-badge">${bonusLabel(e.total)}</span></div>
-            <div style="font-size:11px;color:#64748b">${e.role} &nbsp;前期比 <span style="${diff>=0?'color:#4ade80':'color:#f87171'};font-weight:700">${diff>=0?'+':''}${diff}</span></div>
-          </div>
-          <div class="eval-score-big" style="color:${e.total>=100?'#f59e0b':'#4ade80'}">${e.total}</div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">月次売上推移（下期6ヶ月）</div><span class="panel-sub">目標 ¥2,200万</span></div>
+      <div class="panel-body">
+        <div class="bar-chart">
+          ${MOCK_MONTHS.map((m,i)=>{
+            const h=Math.round(MOCK_MONTHLY_SALES[i]/maxH*100);
+            const isBest=MOCK_MONTHLY_SALES[i]===maxH,isLast=i===5;
+            const col=isBest?'linear-gradient(0deg,#d97706,#fbbf24)':isLast?'linear-gradient(0deg,#ea580c,#f97316)':'linear-gradient(0deg,#1e2e48,#2a3e5e)';
+            const vc=isBest?'#fbbf24':isLast?'#f97316':'#7a92a8';
+            return `<div class="bar-col"><div class="bar-val" style="color:${vc}">${(MOCK_MONTHLY_SALES[i]/10000).toFixed(0)}万</div><div class="bar-inner" style="height:${h}%;background:${col}"></div><div class="bar-lbl">${m}</div></div>`;
+          }).join('')}
         </div>
-        <div class="eval-detail">
-          <div style="margin-top:12px">
-            <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓 (33%)</span>${scoreBar(e.newProductScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.newProductCount}件/目標${e.newProductTarget}件</span></div>
-            <div class="eval-row"><span class="eval-row-label">💴 販売利益率 (33%)</span>${scoreBar(e.marginScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.avgGrossMargin}%/目標${e.marginTarget}%</span></div>
-            <div class="eval-row"><span class="eval-row-label">📌 定着率 (34%)</span>${scoreBar(e.settlementScore)}<span style="font-size:11px;color:#64748b;margin-left:8px">${e.settlementRate}%/目標${e.settlementTarget}%</span></div>
-          </div>
+        <div class="chart-axis"></div>
+        <div class="chart-foot">
+          <span>最低: ¥${(Math.min(...MOCK_MONTHLY_SALES)/10000).toFixed(0)}万（1月）</span>
+          <span>平均: ¥${(MOCK_MONTHLY_SALES.reduce((a,b)=>a+b,0)/6/10000).toFixed(0)}万</span>
+          <span>最高: ¥${(maxH/10000).toFixed(0)}万（12月）</span>
         </div>
-      </div>`;
-    }).join('')}
-  </div>`;
-}
-
-// ===== 評価承認 =====
-function renderEvaluations() {
-  const evals = MOCK_EVALS['2026-Q1'];
-  const isPresident = currentRole === 'president';
-  const isManager   = currentRole === 'manager';
-  return `
-  <div class="sec-title">評価 ${isPresident?'承認':'レビュー'} <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
-  ${evals.map(e => {
-    const ap = approvals[e.id] || {};
-    const approved = ap.presidentApproved;
-    return `<div class="eval-card open" id="ec-${e.id}">
-      <div class="eval-card-header">
-        <div class="eval-avatar" style="background:${e.color}">${e.avatar}</div>
-        <div style="flex:1">
-          <div class="eval-name">${e.name}</div>
-          <div style="font-size:11px;color:#64748b">${e.role}</div>
-        </div>
-        <div class="eval-score-big" style="color:${e.total>=100?'#f59e0b':'#4ade80'}">${e.total}</div>
-        ${approved ? '<span class="approved-badge">✅ 承認済み</span>' : ''}
       </div>
-      <div class="eval-detail" style="display:block">
-        <div style="margin-top:12px">
-          <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓</span>${scoreBar(e.newProductScore)}</div>
-          <div class="eval-row"><span class="eval-row-label">💴 販売利益率</span>${scoreBar(e.marginScore)}</div>
-          <div class="eval-row"><span class="eval-row-label">📌 定着率</span>${scoreBar(e.settlementScore)}</div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">月次粗利率推移（下期6ヶ月）</div><span class="panel-sub">目標 28%以上</span></div>
+      <div class="panel-body">
+        <div class="bar-chart">
+          ${MOCK_MONTHS.map((m,i)=>{
+            const h=Math.round((MOCK_MONTHLY_MARGIN[i]-minM+0.5)/(maxM-minM+0.5)*100);
+            const v=MOCK_MONTHLY_MARGIN[i];
+            const c=v>=28?'#10d9a0':v>=26?'#f5a623':'#f54e6e';
+            return `<div class="bar-col"><div class="bar-val" style="color:${c}">${v}%</div><div class="bar-inner" style="height:${h}%;background:${c}"></div><div class="bar-lbl">${m}</div></div>`;
+          }).join('')}
         </div>
-        ${isManager ? `
-          <div style="margin-top:12px">
-            <div style="font-size:12px;color:#64748b;margin-bottom:4px">店長コメント</div>
-            <textarea class="comment-box" id="mgr-${e.id}" placeholder="コメントを入力...">${ap.managerComment||''}</textarea>
-            <button class="save-btn" onclick="saveManagerComment('${e.id}')">保存</button>
-          </div>` : ''}
-        ${isPresident ? `
-          <div style="margin-top:12px">
-            ${ap.managerComment ? `<div style="background:#0f172a;border-radius:8px;padding:10px 12px;font-size:13px;color:#94a3b8;margin-bottom:10px"><span style="color:#64748b;font-size:11px">店長コメント：</span><br>${ap.managerComment}</div>` : '<div style="font-size:12px;color:#475569;margin-bottom:10px">店長コメントなし</div>'}
-            <div style="font-size:12px;color:#64748b;margin-bottom:4px">社長コメント</div>
-            <textarea class="comment-box" id="prs-${e.id}" placeholder="最終コメントを入力...">${ap.presidentComment||''}</textarea>
-            ${!approved ? `<button class="approve-btn" onclick="approveEval('${e.id}')">✅ 承認・確定</button>` : '<span class="approved-badge">承認済み</span>'}
-          </div>` : ''}
+        <div class="chart-axis"></div>
+        <div class="chart-foot">
+          <span style="color:#10d9a0">■ 28%+ 目標達成</span>
+          <span style="color:#f5a623">■ 26-28% 要改善</span>
+          <span style="color:#f54e6e">■ -26% 要対策</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">社員評価スコア一覧</div><span class="panel-sub">2026-Q1 · 100点=目標</span></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>社員</th><th>役割</th><th>総合</th><th class="num">新商品</th><th class="num">利益率</th><th class="num">定着率</th><th class="num">前期比</th><th>賞与</th></tr></thead>
+          <tbody>${MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>b.total-a.total).map(e=>{
+            const d=e.total-e.prevScore;
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${e.color}">${e.avatar}</div><span style="font-weight:500">${e.name}</span></div></td>
+              <td><span style="font-size:11px;color:var(--tx2)">${e.role}</span></td>
+              <td>${sbar(e.total,'90px')}</td>
+              <td class="num"><span class="${e.newProductScore>=100?'gold':''}">${e.newProductScore}</span></td>
+              <td class="num"><span class="${e.marginScore>=100?'gold':''}">${e.marginScore}</span></td>
+              <td class="num"><span class="${e.settlementScore>=100?'gold':''}">${e.settlementScore}</span></td>
+              <td class="num"><span class="${d>=0?'up':'down'}">${d>=0?'+':''}${d}</span></td>
+              <td><span class="badge ${e.total>=100?'badge-amber':'badge-blue'}">${bonusLabel(e.total)}</span></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">配送実績サマリー（今月）</div></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>配送員</th><th class="num">件数</th><th class="num">回収率</th><th class="num">売上達成</th><th class="num">粗利率</th><th class="num">新商品</th><th class="num">CL</th></tr></thead>
+          <tbody>${MOCK_DELIVERY.map(d=>{
+            const cr=(d.containers/d.containerTarget*100).toFixed(0);
+            const sr=(d.sales/d.salesTarget*100).toFixed(0);
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${d.color}">${d.avatar}</div><span style="font-weight:500">${d.name}</span></div></td>
+              <td class="num">${d.deliveries}</td>
+              <td class="num"><span class="${rateCls(cr)}">${cr}%</span></td>
+              <td class="num"><span class="${+sr>=100?'gold':+sr>=90?'ok':'warn'}">${sr}%</span></td>
+              <td class="num">${d.margin}%</td>
+              <td class="num">${d.newProducts}件</td>
+              <td class="num" style="color:${d.claims>0?'#f54e6e':'#10d9a0'}">${d.claims}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">最近の発注（直近8件）</div></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>日付</th><th>顧客</th><th>担当</th><th class="num">金額</th><th class="num">粗利率</th><th>状態</th></tr></thead>
+          <tbody>${MOCK_SALES_ORDERS.map(o=>`<tr>
+            <td style="color:var(--tx2)">${o.date.slice(5)}</td>
+            <td style="font-weight:500">${o.customer}</td>
+            <td style="color:var(--tx2);font-size:11px">${o.emp.split(' ')[0]}</td>
+            <td class="num">${fmtMoney(o.amount)}</td>
+            <td class="num ${+o.margin>=28?'ok':'warn'}">${o.margin}%</td>
+            <td><span class="badge ${o.status==='delivered'?'badge-green':'badge-amber'}">${o.status==='delivered'?'配送済':'配送中'}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">売掛金 · 未収金状況</div><span class="badge badge-red">${overdueAcc.length}件 超過</span></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>顧客</th><th class="num">残高</th><th>期日</th><th class="num">超過日数</th><th>状態</th></tr></thead>
+          <tbody>${MOCK_ACCOUNTS.map(a=>`<tr>
+            <td style="font-weight:500">${a.customer}</td>
+            <td class="num">${fmtMoney(a.balance)}</td>
+            <td style="color:var(--tx2)">${a.due.slice(5)}</td>
+            <td class="num" style="color:${a.overdue>0?'#f54e6e':'var(--tx2)'}">${a.overdue>0?a.overdue+'日':'-'}</td>
+            <td><span class="badge ${a.status==='overdue'?'badge-red':a.status==='warning'?'badge-amber':'badge-green'}">${a.status==='overdue'?'超過':a.status==='warning'?'注意':'正常'}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+        <div style="padding:8px 14px;font-size:11px;color:var(--tx2);display:flex;justify-content:space-between;border-top:1px solid var(--bd)">
+          <span>合計残高: <b style="color:var(--tx)">${fmtMoney(MOCK_ACCOUNTS.reduce((a,b)=>a+b.balance,0))}</b></span>
+          <span>超過合計: <b style="color:#f54e6e">${fmtMoney(overdueTotal)}</b></span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   配送実績（全体）
+══════════════════════════════════════════ */
+function renderDeliveryAll(){
+  const tot={deliveries:0,containers:0,containerTarget:0,sales:0,salesTarget:0,newProducts:0,targetProducts:0,claims:0,absent:0,late:0};
+  MOCK_DELIVERY.forEach(d=>{for(const k in tot)if(d[k]!==undefined)tot[k]+=d[k];});
+  const cr=(tot.containers/tot.containerTarget*100).toFixed(1);
+  const sr=(tot.sales/tot.salesTarget*100).toFixed(1);
+  return pageHd('配送実績（全体）','今月 · 配送員3名')+`
+  <div class="g6" style="margin-bottom:14px">
+    <div class="kpi accent"><div class="kpi-l">配送件数</div><div class="kpi-v sm">${tot.deliveries}</div><div class="kpi-sub">3名合計</div></div>
+    <div class="kpi ${+cr>=90?'green':'red'}"><div class="kpi-l">空容器回収率</div><div class="kpi-v sm ${+cr>=90?'ok':'down'}">${cr}%</div><div class="kpi-sub">${tot.containers}/${tot.containerTarget}本</div></div>
+    <div class="kpi"><div class="kpi-l">配送売上</div><div class="kpi-v sm">${fmtMoney(tot.sales)}</div><div class="kpi-sub ${+sr>=100?'up':'warn'}">${sr}% 達成</div></div>
+    <div class="kpi"><div class="kpi-l">新商品獲得</div><div class="kpi-v sm">${tot.newProducts}件</div><div class="kpi-sub">TG: ${tot.targetProducts}件</div></div>
+    <div class="kpi ${tot.claims>0?'red':'green'}"><div class="kpi-l">クレーム</div><div class="kpi-v sm" style="color:${tot.claims>0?'#f54e6e':'#10d9a0'}">${tot.claims}件</div></div>
+    <div class="kpi"><div class="kpi-l">欠勤 / 遅刻</div><div class="kpi-v sm">${tot.absent}<span style="font-size:13px;color:var(--tx2)">日</span>/${tot.late}<span style="font-size:13px;color:var(--tx2)">回</span></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">社員別 詳細配送実績</div><span class="panel-sub">今月実績 · 全指標</span></div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>配送員</th>
+          <th class="num">配送件数</th><th class="num">回収数</th><th class="num">目標</th><th class="num">回収率</th>
+          <th class="num">売上額</th><th class="num">目標</th><th class="num">達成率</th>
+          <th class="num">粗利率</th><th class="num">新商品</th><th class="num">TG商品</th>
+          <th class="num">売掛回収</th><th class="num">CL</th><th class="num">欠勤</th><th class="num">遅刻</th><th>車両点検</th>
+        </tr></thead>
+        <tbody>
+          ${MOCK_DELIVERY.map(d=>{
+            const cr=(d.containers/d.containerTarget*100).toFixed(0);
+            const sr=(d.sales/d.salesTarget*100).toFixed(0);
+            const rr=(d.accountsReceivable/d.receivableTarget*100).toFixed(0);
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${d.color}">${d.avatar}</div><span style="font-weight:500">${d.name}</span></div></td>
+              <td class="num">${d.deliveries}</td>
+              <td class="num">${d.containers}</td>
+              <td class="num" style="color:var(--tx2)">${d.containerTarget}</td>
+              <td class="num"><span class="${rateCls(cr)}">${cr}%</span></td>
+              <td class="num">${fmtMoney(d.sales)}</td>
+              <td class="num" style="color:var(--tx2)">${fmtMoney(d.salesTarget)}</td>
+              <td class="num"><span class="${+sr>=100?'gold':+sr>=90?'ok':'warn'}">${sr}%</span></td>
+              <td class="num">${d.margin}%</td>
+              <td class="num">${d.newProducts}件</td>
+              <td class="num">${d.targetProducts}件</td>
+              <td class="num"><span class="${+rr<=100?'ok':'down'}">${rr}%</span></td>
+              <td class="num" style="color:${d.claims>0?'#f54e6e':'#10d9a0'}">${d.claims}</td>
+              <td class="num" style="color:${d.absent>0?'#f5a623':'var(--tx2)'}">${d.absent}日</td>
+              <td class="num" style="color:${d.late>0?'#f5a623':'var(--tx2)'}">${d.late}回</td>
+              <td style="text-align:center"><span class="badge ${d.vehicleCheck?'badge-green':'badge-red'}">${d.vehicleCheck?'✓ OK':'✗ 未'}</span></td>
+            </tr>`;
+          }).join('')}
+          <tr class="tbl-total">
+            <td>合計 / 平均</td>
+            <td class="num">${tot.deliveries}</td><td class="num">${tot.containers}</td>
+            <td class="num" style="color:var(--tx2)">${tot.containerTarget}</td>
+            <td class="num"><span class="${rateCls(tot.containers/tot.containerTarget*100)}">${(tot.containers/tot.containerTarget*100).toFixed(0)}%</span></td>
+            <td class="num">${fmtMoney(tot.sales)}</td>
+            <td class="num" style="color:var(--tx2)">${fmtMoney(tot.salesTarget)}</td>
+            <td class="num"><span class="${+sr>=100?'gold':'ok'}">${sr}%</span></td>
+            <td class="num">${(MOCK_DELIVERY.reduce((a,d)=>a+d.margin,0)/MOCK_DELIVERY.length).toFixed(1)}%</td>
+            <td class="num">${tot.newProducts}件</td><td class="num">${tot.targetProducts}件</td>
+            <td class="num">—</td>
+            <td class="num" style="color:${tot.claims>0?'#f54e6e':'#10d9a0'}">${tot.claims}</td>
+            <td class="num">${tot.absent}日</td><td class="num">${tot.late}回</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   配送実績（個人）
+══════════════════════════════════════════ */
+let selectedDriver=MOCK_DELIVERY[0].id;
+function renderDeliveryEmp(){
+  const d=MOCK_DELIVERY.find(x=>x.id===selectedDriver)||MOCK_DELIVERY[0];
+  const cr=(d.containers/d.containerTarget*100).toFixed(0);
+  const sr=(d.sales/d.salesTarget*100).toFixed(0);
+  const rr=(d.accountsReceivable/d.receivableTarget*100).toFixed(0);
+  return pageHd('配送実績（個人別）','配送員を選択')+`
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    ${MOCK_DELIVERY.map(d2=>`<div onclick="selectedDriver='${d2.id}';showPage('delivery_emp',document.getElementById('nav-delivery_emp'))" style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r);border:1.5px solid ${d2.id===selectedDriver?'var(--ac)':'var(--bd)'};background:${d2.id===selectedDriver?'var(--ac-bg)':'var(--sf)'};cursor:pointer;transition:all .15s">
+      <div class="av av-sm" style="background:${d2.color}">${d2.avatar}</div>
+      <span style="font-size:13px;font-weight:600;color:${d2.id===selectedDriver?'#fb923c':'var(--tx2)'}">${d2.name}</span>
+    </div>`).join('')}
+  </div>
+  <div class="g3" style="margin-bottom:14px">
+    <div class="kpi accent">
+      <div class="kpi-l">配送員</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:5px">
+        <div class="av av-lg" style="background:${d.color}">${d.avatar}</div>
+        <div><div style="font-size:18px;font-weight:800;color:var(--tx)">${d.name}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">配送社員</div></div>
+      </div>
+    </div>
+    <div class="kpi"><div class="kpi-l">配送件数</div><div class="kpi-v">${d.deliveries}</div></div>
+    <div class="kpi ${+cr>=90?'green':'red'}"><div class="kpi-l">空容器回収率</div><div class="kpi-v ${rateCls(cr)}">${cr}%</div><div class="kpi-sub">${d.containers}本 ／ 目標 ${d.containerTarget}本</div></div>
+  </div>
+  <div class="g3" style="margin-bottom:14px">
+    <div class="kpi ${+sr>=100?'amber':''}">
+      <div class="kpi-l">売上達成率</div>
+      <div class="kpi-v ${+sr>=100?'gold':+sr>=90?'ok':'warn'}">${sr}%</div>
+      <div class="kpi-sub">${fmtMoney(d.sales)} ／ 目標 ${fmtMoney(d.salesTarget)}</div>
+    </div>
+    <div class="kpi"><div class="kpi-l">粗利率</div><div class="kpi-v ${d.margin>=28?'ok':'warn'}">${d.margin}%</div><div class="kpi-sub">目標 28%</div></div>
+    <div class="kpi"><div class="kpi-l">新商品 ／ ターゲット</div><div class="kpi-v">${d.newProducts}<span style="font-size:14px;color:var(--tx2)">件 ／</span>${d.targetProducts}<span style="font-size:14px;color:var(--tx2)">件</span></div></div>
+  </div>
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi"><div class="kpi-l">売掛金残高</div><div class="kpi-v sm">${fmtMoney(d.accountsReceivable)}</div><div class="kpi-sub ${+rr<=100?'up':'down'}">回収率 ${rr}%（目標 ${fmtMoney(d.receivableTarget)}）</div></div>
+    <div class="kpi ${d.claims>0?'red':'green'}"><div class="kpi-l">クレーム</div><div class="kpi-v sm" style="color:${d.claims>0?'#f54e6e':'#10d9a0'}">${d.claims}件</div></div>
+    <div class="kpi ${d.absent>0?'red':'green'}"><div class="kpi-l">欠勤</div><div class="kpi-v sm" style="color:${d.absent>0?'#f5a623':'#10d9a0'}">${d.absent}日</div></div>
+    <div class="kpi ${d.late>1?'red':d.late>0?'amber':'green'}"><div class="kpi-l">遅刻</div><div class="kpi-v sm" style="color:${d.late>0?'#f5a623':'#10d9a0'}">${d.late}回</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">評価スコア詳細</div><span class="panel-sub">2026-Q1</span></div>
+    <div class="panel-body">
+      ${(()=>{const e=MOCK_EVALS['2026-Q1'].find(x=>x.id===d.id)||MOCK_EVALS['2026-Q1'][0];const td=e.total-e.prevScore;return`
+      <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px">
+        <div style="text-align:center">
+          <div style="font-size:44px;font-weight:900;color:${e.total>=100?'#fbbf24':'#10d9a0'};letter-spacing:-.03em">${e.total}</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:2px">総合スコア（100=目標）</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span class="badge ${e.total>=100?'badge-amber':'badge-blue'}" style="font-size:13px;padding:4px 12px">${bonusLabel(e.total)}</span>
+          <span style="font-size:13px;color:${td>=0?'#10d9a0':'#f54e6e'};font-weight:700">${td>=0?'▲':'▼'}${Math.abs(td)}点 前期比</span>
+        </div>
+      </div>
+      <div class="g3">
+        <div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.newProductCount}件 ／ 目標 ${e.newProductTarget}件</div></div>
+        <div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.avgGrossMargin}% ／ 目標 ${e.marginTarget}%</div></div>
+        <div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.settlementRate}% ／ 目標 ${e.settlementTarget}%</div></div>
+      </div>`;})()}
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   店舗実績
+══════════════════════════════════════════ */
+function renderStore(){
+  const s=MOCK_STORE;
+  const sr=(s.sales/s.salesTarget*100).toFixed(1);
+  const wr=(s.waste/s.sales*100).toFixed(2);
+  const dr=(s.inventoryDiff/s.inventory*100).toFixed(2);
+  return pageHd('店舗実績','今月実績')+`
+  <div class="g3" style="margin-bottom:14px">
+    <div class="kpi accent">
+      <div class="kpi-l">🏬 店舗売上</div>
+      <div class="kpi-v">${fmtMoney(s.sales)}</div>
+      <div class="kpi-sub ${+sr>=100?'up':'warn'}">達成率 ${sr}% ／ 目標 ${fmtMoney(s.salesTarget)} ／ 残 ${fmtMoney(s.salesTarget-s.sales)}</div>
+    </div>
+    <div class="kpi ${+wr<=2?'green':'red'}">
+      <div class="kpi-l">🗑️ 廃棄金額 ／ 廃棄率</div>
+      <div class="kpi-v sm" style="color:${+wr<=2?'#10d9a0':'#f54e6e'}">${fmtMoney(s.waste)}</div>
+      <div class="kpi-sub" style="color:${+wr<=2?'#10d9a0':'#f54e6e'}">廃棄率 ${wr}%（目標 2%以下）/ ${s.wasteItems}品目</div>
+    </div>
+    <div class="kpi ${+dr<=1?'green':'red'}">
+      <div class="kpi-l">📦 在庫差異率</div>
+      <div class="kpi-v sm" style="color:${+dr<=1?'#10d9a0':'#f5a623'}">${dr}%</div>
+      <div class="kpi-sub">差異額 ${fmtMoney(s.inventoryDiff)} ／ 在庫総額 ${fmtMoney(s.inventory)}</div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="kpi"><div class="kpi-l">👥 来客数</div><div class="kpi-v sm">${s.customerCount}人</div><div class="kpi-sub">今月</div></div>
+    <div class="kpi green"><div class="kpi-l">✨ 新規顧客</div><div class="kpi-v sm up">${s.newCustomer}人</div></div>
+    <div class="kpi red"><div class="kpi-l">↩️ 離脱顧客</div><div class="kpi-v sm down">${s.returnCustomer}人</div></div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   ランキング
+══════════════════════════════════════════ */
+function renderRanking(){
+  const data=MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>b.total-a.total);
+  const medals=['🥇','🥈','🥉'];
+  return pageHd('スコアランキング','2026-Q1 · クリックで詳細展開')+
+  data.map((e,i)=>{
+    const d=e.total-e.prevScore;
+    const ap=approvals[e.id];
+    return `<div class="eval-card" onclick="this.classList.toggle('open')">
+      <div class="eval-head">
+        <div style="width:34px;height:34px;border-radius:50%;background:${i<3?['#d97706','#64748b','#92400e'][i]:'var(--sf2)'};display:flex;align-items:center;justify-content:center;font-size:${i<3?18:13}px;font-weight:900;color:#fff;flex-shrink:0">${i<3?medals[i]:i+1}</div>
+        <div class="av av-md" style="background:${e.color}">${e.avatar}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--tx)">${e.name}
+            <span class="badge ${e.total>=100?'badge-amber':'badge-blue'}" style="margin-left:8px">${bonusLabel(e.total)}</span>
+            ${ap?.presidentApproved?'<span class="badge badge-green" style="margin-left:6px">✅ 承認済</span>':''}
+          </div>
+          <div style="font-size:11px;color:var(--tx2)">${e.role} &nbsp;·&nbsp; 前期比 <span style="color:${d>=0?'#10d9a0':'#f54e6e'};font-weight:700">${d>=0?'+':''}${d}</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:34px;font-weight:900;color:${e.total>=100?'#fbbf24':'#10d9a0'};line-height:1;letter-spacing:-.02em">${e.total}</div>
+          <div style="font-size:10px;color:var(--tx2);margin-top:2px">点（100=目標）</div>
+        </div>
+      </div>
+      <div class="eval-body">
+        <div class="g3" style="margin-top:4px">
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.newProductCount}件 / 目標${e.newProductTarget}件</div></div>
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.avgGrossMargin}% / 目標${e.marginTarget}%</div></div>
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.settlementRate}% / 目標${e.settlementTarget}%</div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   評価承認
+══════════════════════════════════════════ */
+function renderEvaluations(){
+  const evals=MOCK_EVALS['2026-Q1'];
+  const isMgr=currentRole==='manager',isPrs=currentRole==='president';
+  const done=evals.length-getPendingCount();
+  return pageHd(isPrs?'評価承認':'評価レビュー','2026-Q1')+`
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <span style="font-size:12px;color:var(--tx2)">承認進捗</span>
+    <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;max-width:180px"><div style="height:100%;width:${done/evals.length*100}%;background:var(--gn);border-radius:3px;transition:width .5s"></div></div>
+    <span style="font-size:12px;font-weight:700;color:var(--gn)">${done} / ${evals.length}件</span>
+  </div>
+  ${evals.map(e=>{
+    const ap=approvals[e.id]||{};
+    return `<div class="eval-card open" id="ec-${e.id}">
+      <div class="eval-head" style="cursor:default">
+        <div class="av av-md" style="background:${e.color}">${e.avatar}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--tx)">${e.name}</div>
+          <div style="font-size:11px;color:var(--tx2)">${e.role}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:30px;font-weight:900;color:${e.total>=100?'#fbbf24':'#10d9a0'};letter-spacing:-.02em">${e.total}</div>
+          <span class="badge ${e.total>=100?'badge-amber':'badge-blue'}">${bonusLabel(e.total)}</span>
+        </div>
+      </div>
+      <div class="eval-body" style="display:block">
+        <div class="g3" style="margin-bottom:14px">
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.newProductCount}件/目標${e.newProductTarget}件</div></div>
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.avgGrossMargin}%/目標${e.marginTarget}%</div></div>
+          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.settlementRate}%/目標${e.settlementTarget}%</div></div>
+        </div>
+        <div class="divider"></div>
+        ${isMgr?`<div style="margin-top:10px"><div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:500">店長コメント</div><textarea class="comment-box" id="mgr-${e.id}" placeholder="評価コメントを入力…">${ap.managerComment||''}</textarea><button class="btn btn-save" onclick="saveManagerComment('${e.id}')" style="margin-top:6px">保存</button></div>`:''}
+        ${isPrs?`<div style="margin-top:10px">
+          ${ap.managerComment?`<div style="background:var(--bg);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--tx2);margin-bottom:10px;border:1px solid var(--bd)"><div style="font-size:10px;color:var(--tx3);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.04em">店長コメント</div>${ap.managerComment}</div>`:'<div style="font-size:11px;color:var(--tx3);margin-bottom:10px">店長コメントなし</div>'}
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:500">社長コメント</div>
+          <textarea class="comment-box" id="prs-${e.id}" placeholder="最終コメントを入力…">${ap.presidentComment||''}</textarea>
+          <div style="margin-top:8px">${ap.presidentApproved?'<span class="approved-tag">✅ 承認済み · 確定</span>':`<button class="btn btn-approve" onclick="approveEval('${e.id}')">✅ 承認 · 確定</button>`}</div>
+        </div>`:''}
       </div>
     </div>`;
   }).join('')}`;
 }
+function saveManagerComment(id){approvals[id]={...(approvals[id]||{}),managerComment:document.getElementById('mgr-'+id).value};alert('保存しました');}
+function approveEval(id){approvals[id]={...(approvals[id]||{}),presidentComment:document.getElementById('prs-'+id).value,presidentApproved:true};renderPage('evaluations');renderHeaderKpi();}
 
-function saveManagerComment(id) {
-  const val = document.getElementById(`mgr-${id}`).value;
-  approvals[id] = { ...(approvals[id]||{}), managerComment: val };
-  alert('保存しました');
-}
-
-function approveEval(id) {
-  const val = document.getElementById(`prs-${id}`).value;
-  approvals[id] = { ...(approvals[id]||{}), presidentComment: val, presidentApproved: true };
-  renderPage('evaluations');
-}
-
-// ===== 配送実績 =====
-function renderDelivery() {
-  const total = {deliveries:0,containers:0,containerTarget:0,sales:0,salesTarget:0,claims:0,absent:0,late:0};
-  MOCK_DELIVERY.forEach(d => { for(const k in total) total[k]+=d[k]; });
-  return `
-  <div class="sec-title">配送実績（全体）</div>
-  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
-    <div class="kpi-card"><div class="kpi-label">配送件数</div><div class="kpi-value">${total.deliveries}</div></div>
-    <div class="kpi-card"><div class="kpi-label">空容器回収率</div><div class="kpi-value">${(total.containers/total.containerTarget*100).toFixed(0)}%</div><div class="kpi-sub kpi-neu">${total.containers}/${total.containerTarget}本</div></div>
-    <div class="kpi-card highlight"><div class="kpi-label">売上合計</div><div class="kpi-value">¥${(total.sales/10000).toFixed(0)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-${total.sales>=total.salesTarget?'up':'down'}">${(total.sales/total.salesTarget*100).toFixed(0)}% 達成</div></div>
-    <div class="kpi-card"><div class="kpi-label">クレーム件数</div><div class="kpi-value" style="color:${total.claims>0?'#f87171':'#4ade80'}">${total.claims}</div></div>
-    <div class="kpi-card"><div class="kpi-label">欠勤</div><div class="kpi-value">${total.absent}日</div></div>
-    <div class="kpi-card"><div class="kpi-label">遅刻</div><div class="kpi-value">${total.late}回</div></div>
-  </div>
-  <div class="sec-title">社員別 配送実績</div>
-  <div class="data-table-wrap">
-    <table class="data-table">
-      <thead><tr><th>社員</th><th>配送件数</th><th>回収率</th><th>売上</th><th>達成率</th><th>粗利率</th><th>新商品</th><th>クレーム</th><th>欠勤/遅刻</th></tr></thead>
-      <tbody>
-        ${MOCK_DELIVERY.map(d => {
-          const cRate = (d.containers/d.containerTarget*100).toFixed(0);
-          const sRate = (d.sales/d.salesTarget*100).toFixed(0);
-          return `<tr>
-            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:${d.color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${d.avatar}</div>${d.name}</div></td>
-            <td>${d.deliveries}</td>
-            <td><span style="color:${cRate>=100?'#4ade80':cRate>=80?'#fb923c':'#f87171'};font-weight:700">${cRate}%</span></td>
-            <td>¥${(d.sales/10000).toFixed(0)}万</td>
-            <td><span style="color:${sRate>=100?'#f59e0b':sRate>=90?'#4ade80':'#f87171'};font-weight:700">${sRate}%</span></td>
-            <td>${d.margin}%</td>
-            <td>${d.newProducts}件</td>
-            <td style="color:${d.claims>0?'#f87171':'#4ade80'}">${d.claims}</td>
-            <td style="color:${(d.absent+d.late)>0?'#fb923c':'#4ade80'}">${d.absent}日/${d.late}回</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
+/* ══════════════════════════════════════════
+   発注サマリー
+══════════════════════════════════════════ */
+function renderOrders(){
+  return pageHd('発注サマリー','直近8件')+`
+  <div class="panel"><div class="panel-body" style="padding:0">
+    <table class="tbl">
+      <thead><tr><th>発注日</th><th>顧客</th><th>担当</th><th class="num">金額</th><th class="num">商品数</th><th class="num">粗利率</th><th>状態</th></tr></thead>
+      <tbody>${MOCK_SALES_ORDERS.map(o=>`<tr>
+        <td style="color:var(--tx2)">${o.date}</td>
+        <td style="font-weight:500">${o.customer}</td>
+        <td style="color:var(--tx2)">${o.emp}</td>
+        <td class="num">${fmtMoney(o.amount)}</td>
+        <td class="num">${o.items}品</td>
+        <td class="num ${+o.margin>=28?'ok':'warn'}">${o.margin}%</td>
+        <td><span class="badge ${o.status==='delivered'?'badge-green':'badge-amber'}">${o.status==='delivered'?'配送済':'配送中'}</span></td>
+      </tr>`).join('')}</tbody>
     </table>
+  </div></div>`;
+}
+
+/* ══════════════════════════════════════════
+   社員管理
+══════════════════════════════════════════ */
+function renderEmployees(){
+  const roles=[
+    {role:'president', label:'社長',   name:'芦塚 義幸',  color:'#06b6d4'},
+    {role:'manager',   label:'店長',   name:'赤川 秀敏',  color:'#ef4444'},
+    {role:'driver',    label:'配送',   name:'谷口・奥田・阿比留',color:'#3b82f6'},
+    {role:'sales',     label:'販売管理',name:'川原 未香',  color:'#ec4899'},
+    {role:'accounting',label:'経理管理',name:'芦塚 あかね',color:'#84cc16'},
+    {role:'store',     label:'店舗販売',name:'今村・酒井', color:'#a855f7'},
+  ];
+  return pageHd('社員管理','ロール · PIN設定')+`
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">ロール · PINアクセス</div></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>担当者</th><th>ロール</th><th>PIN</th><th>操作</th></tr></thead>
+          <tbody>${roles.map(r=>`<tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${r.color}">${r.name[0]}</div><span style="font-weight:500;font-size:12px">${r.name}</span></div></td>
+            <td><span class="role-tag">${r.label}</span></td>
+            <td style="color:var(--tx3);font-family:monospace;letter-spacing:3px">● ● ● ●</td>
+            <td><button class="btn btn-save" onclick="alert('PIN変更機能は準備中です')">変更</button></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">社員一覧 · 評価スコア</div></div>
+      <div class="panel-body" style="padding:0">
+        <table class="tbl">
+          <thead><tr><th>社員名</th><th>役割</th><th>総合スコア</th><th>賞与倍率</th></tr></thead>
+          <tbody>${MOCK_EVALS['2026-Q1'].map(e=>`<tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${e.color}">${e.avatar}</div><span style="font-weight:500">${e.name}</span></div></td>
+            <td><span style="font-size:11px;color:var(--tx2)">${e.role}</span></td>
+            <td>${sbar(e.total,'110px')}</td>
+            <td><span class="badge ${e.total>=100?'badge-amber':'badge-blue'}">${bonusLabel(e.total)}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
   </div>`;
 }
 
-// ===== 店舗実績 =====
-function renderStoreStats() {
-  const s = MOCK_STORE;
-  const sRate = (s.sales/s.salesTarget*100).toFixed(1);
-  const wRate = (s.waste/s.sales*100).toFixed(1);
-  const dRate = (s.inventoryDiff/s.inventory*100).toFixed(1);
-  return `
-  <div class="sec-title">店舗実績</div>
-  <div class="kpi-grid">
-    <div class="kpi-card highlight"><div class="kpi-label">店舗売上</div><div class="kpi-value">¥${(s.sales/10000).toFixed(0)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-${sRate>=100?'up':'down'}">達成率 ${sRate}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">廃棄金額</div><div class="kpi-value" style="color:${wRate<=2?'#4ade80':'#f87171'}">¥${(s.waste/10000).toFixed(1)}<span style="font-size:14px">万</span></div><div class="kpi-sub kpi-neu">廃棄率 ${wRate}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">在庫差異率</div><div class="kpi-value" style="color:${dRate<=1?'#4ade80':'#fb923c'}">${dRate}<span style="font-size:14px">%</span></div><div class="kpi-sub kpi-neu">差異額 ¥${(s.inventoryDiff/10000).toFixed(1)}万</div></div>
-  </div>`;
-}
-
-// ===== 発注サマリー =====
-function renderOrders() {
-  return `<div class="sec-title">発注サマリー</div><div style="color:#64748b;padding:40px;text-align:center">バックエンド接続後に表示されます</div>`;
-}
-
-// ===== 社員管理 =====
-function renderEmployees() {
-  return `
-  <div class="sec-title">社員管理</div>
-  <div class="data-table-wrap">
-    <table class="data-table">
-      <thead><tr><th>社員</th><th>役割</th><th>PIN変更</th></tr></thead>
-      <tbody>
-        ${Object.entries(ROLE_NAMES).map(([role, label]) => `
-          <tr>
-            <td>${label}</td>
-            <td><span style="font-size:11px;color:#94a3b8">${role}</span></td>
-            <td><button class="save-btn" onclick="alert('PIN変更機能は準備中です')">変更</button></td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
-  </div>`;
-}
-
-// ===== 自分の評価 =====
-function renderMyEval() {
-  // 配送以外は仮スコア
-  const myData = MOCK_EVALS['2026-Q1'].find(e => e.id === 'emp_sak') || MOCK_EVALS['2026-Q1'][0];
-  const score  = myData.total;
-  const diff   = score - myData.prevScore;
-  return `
-  <div class="sec-title">自分の評価 <span style="font-size:12px;color:#64748b;font-weight:400">2026年Q1</span></div>
-  <div class="my-eval-hero">
-    <div style="font-size:13px;color:#64748b;margin-bottom:8px">総合スコア（100=目標達成）</div>
-    <div class="my-eval-score" style="color:${score>=100?'#f59e0b':'#4ade80'}">${score}</div>
-    <div class="my-eval-bonus">${bonusLabel(score)}</div>
-    <div style="font-size:13px;margin-top:8px;color:${diff>=0?'#4ade80':'#f87171'}">${diff>=0?'▲':'▼'}${Math.abs(diff)}点 前期比</div>
+/* ══════════════════════════════════════════
+   個人画面
+══════════════════════════════════════════ */
+function renderMyEval(){
+  const roleToEmp={president:'emp_ash',manager:'emp_aka',driver:'emp_tan',sales:'emp_kaw',accounting:'emp_ake',store:'emp_ima'};
+  const e=MOCK_EVALS['2026-Q1'].find(x=>x.id===roleToEmp[currentRole])||MOCK_EVALS['2026-Q1'][0];
+  const d=e.total-e.prevScore,ap=approvals[e.id]||{};
+  return pageHd('自分の評価','2026-Q1')+`
+  <div class="my-hero">
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:8px;font-weight:500">総合スコア（100点 = 目標達成）</div>
+    <div style="font-size:60px;font-weight:900;line-height:1;color:${e.total>=100?'#fbbf24':'#10d9a0'};letter-spacing:-.03em">${e.total}</div>
+    <div style="margin-top:10px"><span class="badge ${e.total>=100?'badge-amber':'badge-blue'}" style="font-size:14px;padding:5px 16px">${bonusLabel(e.total)}</span></div>
+    <div style="font-size:13px;margin-top:10px;color:${d>=0?'#10d9a0':'#f54e6e'};font-weight:700">${d>=0?'▲':'▼'}${Math.abs(d)}点 前期比</div>
+    ${ap.presidentApproved?'<div style="margin-top:12px"><span class="approved-tag">✅ 社長承認済み · 確定</span></div>':'<div style="margin-top:12px;font-size:12px;color:var(--tx3)">承認待ち（店長レビュー → 社長承認後に確定）</div>'}
   </div>
-  <div class="eval-card">
-    <div class="eval-row"><span class="eval-row-label">🆕 新商品開拓 (33%)</span>${scoreBar(myData.newProductScore)}</div>
-    <div style="font-size:11px;color:#64748b;margin:-4px 0 10px 148px">${myData.newProductCount}件 ／ 目標 ${myData.newProductTarget}件</div>
-    <div class="eval-row"><span class="eval-row-label">💴 販売利益率 (33%)</span>${scoreBar(myData.marginScore)}</div>
-    <div style="font-size:11px;color:#64748b;margin:-4px 0 10px 148px">${myData.avgGrossMargin}% ／ 目標 ${myData.marginTarget}%</div>
-    <div class="eval-row"><span class="eval-row-label">📌 定着率 (34%)</span>${scoreBar(myData.settlementScore)}</div>
-    <div style="font-size:11px;color:#64748b;margin:-4px 0 0 148px">${myData.settlementRate}% ／ 目標 ${myData.settlementTarget}%</div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">評価詳細</div></div>
+    <div class="panel-body">
+      <div style="margin-bottom:14px"><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.newProductCount}件 ／ 目標 ${e.newProductTarget}件</div></div>
+      <div style="margin-bottom:14px"><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.avgGrossMargin}% ／ 目標 ${e.marginTarget}%</div></div>
+      <div><div style="font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:11px;color:var(--tx2);margin-top:4px">${e.settlementRate}% ／ 目標 ${e.settlementTarget}%</div></div>
+    </div>
   </div>
-  <div style="font-size:12px;color:#475569;margin-top:16px;padding:12px;background:#1e293b;border-radius:8px">※ 評価は店長レビュー後、社長が最終承認します。確定後に結果が反映されます。</div>`;
+  ${ap.managerComment?`<div class="panel"><div class="panel-head"><div class="panel-title">店長コメント</div></div><div class="panel-body" style="font-size:13px;color:var(--tx2)">${ap.managerComment}</div></div>`:''}
+  ${ap.presidentComment?`<div class="panel"><div class="panel-head"><div class="panel-title">社長コメント</div></div><div class="panel-body" style="font-size:13px;color:var(--tx2)">${ap.presidentComment}</div></div>`:''}`;
 }
 
-// ===== 自分の配送実績 =====
-function renderMyDelivery() {
-  const d = MOCK_DELIVERY[0];
-  return `
-  <div class="sec-title">自分の配送実績（今月）</div>
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">配送件数</div><div class="kpi-value">${d.deliveries}</div></div>
-    <div class="kpi-card"><div class="kpi-label">空容器回収率</div><div class="kpi-value">${(d.containers/d.containerTarget*100).toFixed(0)}%</div><div class="kpi-sub kpi-neu">${d.containers}/${d.containerTarget}本</div></div>
-    <div class="kpi-card highlight"><div class="kpi-label">売上達成率</div><div class="kpi-value" style="color:#f59e0b">${(d.sales/d.salesTarget*100).toFixed(0)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">新商品獲得</div><div class="kpi-value">${d.newProducts}件</div></div>
-    <div class="kpi-card"><div class="kpi-label">クレーム</div><div class="kpi-value" style="color:${d.claims>0?'#f87171':'#4ade80'}">${d.claims}件</div></div>
-    <div class="kpi-card"><div class="kpi-label">欠勤/遅刻</div><div class="kpi-value">${d.absent}/${d.late}</div></div>
+function renderMyDelivery(){
+  const d=MOCK_DELIVERY[0];
+  const cr=(d.containers/d.containerTarget*100).toFixed(0);
+  const sr=(d.sales/d.salesTarget*100).toFixed(0);
+  return pageHd('自分の配送実績','今月')+`
+  <div class="g3" style="margin-bottom:14px">
+    <div class="kpi accent"><div class="kpi-l">配送件数</div><div class="kpi-v">${d.deliveries}</div></div>
+    <div class="kpi ${+cr>=90?'green':'red'}"><div class="kpi-l">空容器回収率</div><div class="kpi-v ${rateCls(cr)}">${cr}%</div><div class="kpi-sub">${d.containers}本 ／ 目標 ${d.containerTarget}本</div></div>
+    <div class="kpi ${+sr>=100?'amber':''}"><div class="kpi-l">売上達成率</div><div class="kpi-v ${+sr>=100?'gold':'ok'}">${sr}%</div><div class="kpi-sub">${fmtMoney(d.sales)} ／ 目標 ${fmtMoney(d.salesTarget)}</div></div>
+  </div>
+  <div class="g4">
+    <div class="kpi"><div class="kpi-l">粗利率</div><div class="kpi-v sm">${d.margin}%</div></div>
+    <div class="kpi"><div class="kpi-l">新商品獲得</div><div class="kpi-v sm">${d.newProducts}件</div></div>
+    <div class="kpi ${d.claims>0?'red':'green'}"><div class="kpi-l">クレーム</div><div class="kpi-v sm" style="color:${d.claims>0?'#f54e6e':'#10d9a0'}">${d.claims}件</div></div>
+    <div class="kpi"><div class="kpi-l">欠勤 / 遅刻</div><div class="kpi-v sm">${d.absent}日 / ${d.late}回</div></div>
   </div>`;
 }
 
-// ===== 販売管理 業務状況 =====
-function renderSalesWork() {
-  return `
-  <div class="sec-title">販売管理 業務状況</div>
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">未処理受注</div><div class="kpi-value" style="color:#fb923c">3件</div></div>
-    <div class="kpi-card highlight"><div class="kpi-label">当日処理率</div><div class="kpi-value">97%</div></div>
-    <div class="kpi-card"><div class="kpi-label">入力エラー率</div><div class="kpi-value" style="color:#4ade80">0.8%</div></div>
-    <div class="kpi-card"><div class="kpi-label">売掛残高</div><div class="kpi-value">¥182万</div></div>
-    <div class="kpi-card"><div class="kpi-label">督促件数</div><div class="kpi-value" style="color:#fb923c">2件</div></div>
+function renderSalesWork(){
+  return pageHd('販売管理 業務状況','川原 未香')+`
+  <div class="g3" style="margin-bottom:14px">
+    <div class="kpi"><div class="kpi-l">未処理受注</div><div class="kpi-v warn">3件</div></div>
+    <div class="kpi accent"><div class="kpi-l">当日処理率</div><div class="kpi-v ok">97%</div></div>
+    <div class="kpi"><div class="kpi-l">入力エラー率</div><div class="kpi-v ok">0.8%</div></div>
+  </div>
+  <div class="g3">
+    <div class="kpi"><div class="kpi-l">売掛残高</div><div class="kpi-v sm">¥182万</div></div>
+    <div class="kpi"><div class="kpi-l">督促件数</div><div class="kpi-v sm warn">2件</div></div>
+    <div class="kpi green"><div class="kpi-l">月次締め</div><div class="kpi-v sm ok">完了</div></div>
   </div>`;
 }
 
-// ===== 会計管理 業務状況 =====
-function renderAccWork() {
-  return `
-  <div class="sec-title">会計管理 業務状況</div>
-  <div class="kpi-grid">
-    <div class="kpi-card highlight"><div class="kpi-label">未収金回収率</div><div class="kpi-value">94%</div></div>
-    <div class="kpi-card"><div class="kpi-label">月次締め</div><div class="kpi-value" style="color:#4ade80">完了</div></div>
-    <div class="kpi-card"><div class="kpi-label">仕訳差異</div><div class="kpi-value" style="color:#4ade80">0件</div></div>
-    <div class="kpi-card"><div class="kpi-label">未収金残高</div><div class="kpi-value">¥48万</div></div>
+function renderAccWork(){
+  return pageHd('経理管理 業務状況','芦塚 あかね')+`
+  <div class="g4">
+    <div class="kpi accent"><div class="kpi-l">未収金回収率</div><div class="kpi-v ok">94%</div></div>
+    <div class="kpi green"><div class="kpi-l">月次締め</div><div class="kpi-v ok">完了</div></div>
+    <div class="kpi green"><div class="kpi-l">仕訳差異</div><div class="kpi-v ok">0件</div></div>
+    <div class="kpi"><div class="kpi-l">未収金残高</div><div class="kpi-v sm">¥48万</div></div>
   </div>`;
 }
 
-// ===== 店舗管理 業務状況 =====
-function renderStoreWork() {
-  const s = MOCK_STORE;
-  return `
-  <div class="sec-title">店舗管理 業務状況</div>
-  <div class="kpi-grid">
-    <div class="kpi-card highlight"><div class="kpi-label">売上達成率</div><div class="kpi-value">${(s.sales/s.salesTarget*100).toFixed(0)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">廃棄率</div><div class="kpi-value">${(s.waste/s.sales*100).toFixed(1)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">在庫差異率</div><div class="kpi-value">${(s.inventoryDiff/s.inventory*100).toFixed(1)}%</div></div>
+function renderStoreWork(){
+  const s=MOCK_STORE;
+  const sr=(s.sales/s.salesTarget*100).toFixed(1);
+  return pageHd('店舗販売 業務状況','今村 淳子 · 酒井 さやか')+`
+  <div class="g3">
+    <div class="kpi accent"><div class="kpi-l">売上達成率</div><div class="kpi-v ${+sr>=100?'gold':'warn'}">${sr}%</div><div class="kpi-sub">${fmtMoney(s.sales)} ／ 目標 ${fmtMoney(s.salesTarget)}</div></div>
+    <div class="kpi"><div class="kpi-l">廃棄率</div><div class="kpi-v sm ok">${(s.waste/s.sales*100).toFixed(2)}%</div><div class="kpi-sub">目標 2%以下</div></div>
+    <div class="kpi"><div class="kpi-l">在庫差異率</div><div class="kpi-v sm warn">${(s.inventoryDiff/s.inventory*100).toFixed(2)}%</div><div class="kpi-sub">差異額 ${fmtMoney(s.inventoryDiff)}</div></div>
   </div>`;
 }
-
-// ===== ユーティリティ =====
-function toggleCard(el) { el.classList.toggle('open'); }
-
-init && init();
 </script>
 </body>
 </html>
