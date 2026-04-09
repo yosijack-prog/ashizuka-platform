@@ -65,6 +65,16 @@ body{font-family:'Inter','Hiragino Sans','Yu Gothic',system-ui,sans-serif;backgr
 .logout-btn{padding:5px 12px;border-radius:var(--rs);border:1px solid var(--bd);background:transparent;color:var(--tx2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
 .logout-btn:hover{border-color:var(--rd);color:var(--rd)}
 
+/* ===== TOAST ===== */
+#toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;min-width:240px;max-width:360px;backdrop-filter:blur(12px);box-shadow:0 4px 24px rgba(0,0,0,.5);pointer-events:auto;transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);border:1px solid}
+.toast.show{transform:translateX(0)}
+.toast.info{background:rgba(13,21,37,.95);border-color:var(--bd2);color:var(--tx)}
+.toast.success{background:rgba(16,55,40,.95);border-color:rgba(16,217,160,.4);color:#10d9a0}
+.toast.error{background:rgba(55,13,20,.95);border-color:rgba(245,78,110,.4);color:#f54e6e}
+.toast.warning{background:rgba(55,40,13,.95);border-color:rgba(245,166,35,.4);color:#f5a623}
+.toast-icon{font-size:16px;flex-shrink:0}
+
 /* ===== LAYOUT ===== */
 .app-body{display:flex;flex:1;height:calc(100vh - 50px)}
 .sidebar{width:200px;background:var(--sf);border-right:1px solid var(--bd);padding:8px 0 20px;flex-shrink:0;overflow-y:auto}
@@ -182,6 +192,8 @@ body{font-family:'Inter','Hiragino Sans','Yu Gothic',system-ui,sans-serif;backgr
 <body>
 
 <!-- ===== LOGIN ===== -->
+<div id="toast-container"></div>
+
 <div id="login-screen">
   <div class="login-box">
     <div class="login-mark">🍶</div>
@@ -226,6 +238,7 @@ body{font-family:'Inter','Hiragino Sans','Yu Gothic',system-ui,sans-serif;backgr
     <div class="hright">
       <span class="user-name" id="header-user"></span>
       <span class="role-tag" id="header-role"></span>
+      <button id="mf-btn" onclick="toggleMFConnect()" style="display:none;padding:4px 12px;border-radius:6px;border:1px solid;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s"></button>
       <button class="logout-btn" onclick="logout()">ログアウト</button>
     </div>
   </div>
@@ -267,6 +280,7 @@ function loginSuccess(){
   renderHeaderKpi();
   buildSidebar();
   loadData();
+  updateMFBtn();
 }
 function getRolePerson(r){
   return{president:'芦塚 義幸',manager:'赤川 秀敏',driver:'（配送員）',sales:'川原 未香',accounting:'芦塚 あかね',store:'（店舗販売）'}[r]||'';
@@ -305,8 +319,13 @@ const NAV={
     {id:'delivery_all',icon:'🚚',label:'配送実績（全体）'},
     {id:'delivery_emp',icon:'👤',label:'配送実績（個人）'},
     {id:'store',       icon:'🏬',label:'店舗実績'},
+    {id:'mf_finance',  icon:'💹',label:'財務分析 MF',    sec:'財務連携'},
     {id:'ranking',     icon:'🏆',label:'ランキング',      sec:'評価・人事'},
     {id:'evaluations', icon:'⭐',label:'評価承認',badge:true},
+    {id:'retention',   icon:'📊',label:'評価検証'},
+    {id:'danger',      icon:'🚨',label:'危険顧客リスト'},
+    {id:'trend',       icon:'📉',label:'月次推移 3年'},
+    {id:'attendance',  icon:'⚡',label:'勤怠・生産性'},
     {id:'orders',      icon:'📋',label:'発注サマリー',    sec:'業務管理'},
     {id:'employees',   icon:'👥',label:'社員管理'},
   ],
@@ -315,8 +334,13 @@ const NAV={
     {id:'delivery_all',icon:'🚚',label:'配送実績（全体）'},
     {id:'delivery_emp',icon:'👤',label:'配送実績（個人）'},
     {id:'store',       icon:'🏬',label:'店舗実績'},
+    {id:'mf_finance',  icon:'💹',label:'財務分析 MF',    sec:'財務連携'},
     {id:'ranking',     icon:'🏆',label:'ランキング',      sec:'評価'},
     {id:'evaluations', icon:'⭐',label:'評価レビュー',badge:true},
+    {id:'retention',   icon:'📊',label:'評価検証'},
+    {id:'danger',      icon:'🚨',label:'危険顧客リスト'},
+    {id:'trend',       icon:'📉',label:'月次推移 3年'},
+    {id:'attendance',  icon:'⚡',label:'勤怠・生産性'},
     {id:'orders',      icon:'📋',label:'発注サマリー',    sec:'業務'},
   ],
   driver:     [{id:'myeval',icon:'⭐',label:'自分の評価',sec:'マイページ'},{id:'mydelivery',icon:'🚚',label:'自分の実績'}],
@@ -367,9 +391,9 @@ const MOCK_EVALS={'2026-Q1':[
 ]};
 
 const MOCK_DELIVERY=[
-  {id:'emp_tan',name:'谷口 亮介',color:'#3b82f6',avatar:'谷',deliveries:142,containers:38,containerTarget:42,sales:4280000,salesTarget:4000000,margin:32,newProducts:9,targetProducts:5,claims:0,absent:0,late:0,accountsReceivable:280000,receivableTarget:300000,vehicleCheck:true},
-  {id:'emp_oku',name:'奥田 玲晃',color:'#22c55e',avatar:'奥',deliveries:135,containers:35,containerTarget:40,sales:3950000,salesTarget:4000000,margin:30,newProducts:7,targetProducts:4,claims:1,absent:0,late:1,accountsReceivable:310000,receivableTarget:320000,vehicleCheck:true},
-  {id:'emp_abi',name:'阿比留 徹',color:'#f59e0b',avatar:'阿',deliveries:128,containers:32,containerTarget:38,sales:3820000,salesTarget:4000000,margin:29,newProducts:6,targetProducts:3,claims:0,absent:1,late:0,accountsReceivable:290000,receivableTarget:300000,vehicleCheck:true},
+  {id:'emp_tan',name:'谷口 亮介',color:'#3b82f6',avatar:'谷',deliveries:142,containers:38,containerTarget:42,sales:4280000,salesTarget:4000000,margin:32,newProducts:9,targetProducts:5,claims:0,absent:0,late:0,accountsReceivable:280000,receivableTarget:300000,vehicleCheck:true,startMeter:48320,endMeter:48497,monthlyKm:3240},
+  {id:'emp_oku',name:'奥田 玲晃',color:'#22c55e',avatar:'奥',deliveries:135,containers:35,containerTarget:40,sales:3950000,salesTarget:4000000,margin:30,newProducts:7,targetProducts:4,claims:1,absent:0,late:1,accountsReceivable:310000,receivableTarget:320000,vehicleCheck:true,startMeter:62180,endMeter:null,monthlyKm:2980},
+  {id:'emp_abi',name:'阿比留 徹',color:'#f59e0b',avatar:'阿',deliveries:128,containers:32,containerTarget:38,sales:3820000,salesTarget:4000000,margin:29,newProducts:6,targetProducts:3,claims:0,absent:1,late:0,accountsReceivable:290000,receivableTarget:300000,vehicleCheck:true,startMeter:35760,endMeter:35924,monthlyKm:2750},
 ];
 
 const MOCK_STORE={sales:2850000,salesTarget:3000000,waste:85000,wasteItems:12,inventory:4200000,inventoryDiff:52000,customerCount:380,newCustomer:8,returnCustomer:12};
@@ -386,6 +410,155 @@ const MOCK_SALES_ORDERS=[
   {date:'2026-03-25',customer:'渡辺商店',  emp:'川原 未香',amount:198000,status:'delivered', items:4,margin:32.1},
   {date:'2026-03-24',customer:'中村食品',  emp:'阿比留 徹',amount:265000,status:'delivered', items:6,margin:30.4},
 ];
+/* ─── 評価検証：ジャンル別維持率 ─── */
+const MOCK_GENRE_RETENTION={
+  emp_tan:{name:'谷口 亮介',color:'#3b82f6',avatar:'谷',role:'配送',respondedCount:2,
+    genres:[
+      {genre:'ビール',    maintained:14,total:15,prevRate:91},
+      {genre:'日本酒',   maintained: 8,total:10,prevRate:75},
+      {genre:'焼酎',     maintained: 7,total: 9,prevRate:78},
+      {genre:'ウイスキー',maintained: 3,total: 4,prevRate:75},
+      {genre:'ガス',     maintained: 2,total: 2,prevRate:100},
+    ]},
+  emp_oku:{name:'奥田 玲晃',color:'#22c55e',avatar:'奥',role:'配送',respondedCount:1,
+    genres:[
+      {genre:'ビール',    maintained:11,total:13,prevRate:88},
+      {genre:'日本酒',   maintained: 6,total: 8,prevRate:80},
+      {genre:'焼酎',     maintained: 5,total: 7,prevRate:71},
+      {genre:'ウイスキー',maintained: 2,total: 3,prevRate:67},
+      {genre:'ガス',     maintained: 3,total: 3,prevRate:100},
+    ]},
+  emp_abi:{name:'阿比留 徹',color:'#f59e0b',avatar:'阿',role:'配送',respondedCount:1,
+    genres:[
+      {genre:'ビール',    maintained:12,total:14,prevRate:86},
+      {genre:'日本酒',   maintained: 5,total: 7,prevRate:71},
+      {genre:'焼酎',     maintained: 6,total: 8,prevRate:75},
+      {genre:'ウイスキー',maintained: 2,total: 4,prevRate:50},
+      {genre:'ガス',     maintained: 1,total: 2,prevRate:50},
+    ]},
+  emp_aka:{name:'赤川 秀敏',color:'#ef4444',avatar:'赤',role:'店長',respondedCount:4,isTeam:true,
+    genres:[
+      {genre:'ビール',    maintained:37,total:42,prevRate:87},
+      {genre:'日本酒',   maintained:19,total:25,prevRate:74},
+      {genre:'焼酎',     maintained:18,total:24,prevRate:74},
+      {genre:'ウイスキー',maintained: 7,total:11,prevRate:64},
+      {genre:'ガス',     maintained: 6,total: 7,prevRate:86},
+    ]},
+};
+
+/* ─── 評価検証：定性スコア ─── */
+const MOCK_QUAL_SCORES={
+  emp_tan:{enthusiasm:4,relationship:5,teamwork:4,growthMindset:5,comment:'顧客との関係構築が突出。新着任エリアでも即座に信頼関係を築いた。成長意欲が非常に高い。'},
+  emp_oku:{enthusiasm:5,relationship:5,teamwork:5,growthMindset:4,comment:'熱量・誠実さはチームNo.1。顧客との長期的な関係を大切にする姿勢が全員の手本。'},
+  emp_abi:{enthusiasm:3,relationship:4,teamwork:3,growthMindset:3,comment:'安定感があり基礎力は高い。熱量の波があるため、モチベーション維持に向けた定期的な面談を推奨。'},
+  emp_aka:{enthusiasm:4,relationship:4,teamwork:5,growthMindset:4,comment:'チームのまとめ役として存在感大。部下への指導姿勢が良く、チーム全体の底上げに貢献している。'},
+  emp_ima:{enthusiasm:3,relationship:3,teamwork:3,growthMindset:4,comment:'成長意欲は感じられる。まだ顧客との距離感を縮める段階。定期的な同行訪問でフォローを継続。'},
+  emp_kaw:{enthusiasm:4,relationship:4,teamwork:3,growthMindset:5,comment:'新担当エリアで急成長中。顧客との信頼関係を素早く構築している。今後の飛躍に大きな期待。'},
+};
+
+/* ─── 評価検証：チャーン兆候 ─── */
+const MOCK_CHURN=[
+  {empId:'emp_tan',empName:'谷口 亮介',empColor:'#3b82f6',storeId:'s928',storeName:'居酒屋よっとこ（玖島店）',type:'genre_stop',  genre:'日本酒',severity:'warning',message:'日本酒の発注が2ヶ月連続でゼロ。他社切り替えの可能性。',resolved:true},
+  {empId:'emp_tan',empName:'谷口 亮介',empColor:'#3b82f6',storeId:'s069',storeName:'居酒屋 太鼓',             type:'volume_drop', genre:null,   severity:'warning',message:'3ヶ月連続で発注量が前月比−15%。減少トレンドが続いている。',resolved:false},
+  {empId:'emp_tan',empName:'谷口 亮介',empColor:'#3b82f6',storeId:'s112',storeName:'鳥政 大村店',             type:'frequency_drop',genre:null, severity:'danger', message:'週1回→2週に1回に発注頻度が低下。担当者変更の可能性あり。',resolved:false},
+  {empId:'emp_tan',empName:'谷口 亮介',empColor:'#3b82f6',storeId:'s203',storeName:'長崎インターナショナルホテル',type:'no_additional',genre:null,severity:'warning',message:'以前は毎回あった追加発注が先月から消えている。',resolved:true},
+  {empId:'emp_oku',empName:'奥田 玲晃',empColor:'#22c55e',storeId:'s341',storeName:'ダイニング 花まる',         type:'volume_drop', genre:'焼酎',  severity:'warning',message:'焼酎の発注量が2ヶ月で−30%。競合他社の提案を受けた可能性。',resolved:false},
+  {empId:'emp_oku',empName:'奥田 玲晃',empColor:'#22c55e',storeId:'s089',storeName:'スナック ルビー',           type:'payment_delay',genre:null,  severity:'danger', message:'支払い遅延が3ヶ月継続。関係悪化で離脱リスク高。',resolved:false},
+  {empId:'emp_oku',empName:'奥田 玲晃',empColor:'#22c55e',storeId:'s156',storeName:'居酒屋 大漁',              type:'genre_stop',  genre:'ビール',severity:'warning',message:'生ビール樽の発注が止まった。設備トラブルの可能性も。',resolved:true},
+  {empId:'emp_abi',empName:'阿比留 徹',empColor:'#f59e0b',storeId:'s445',storeName:'バー LUNA',               type:'frequency_drop',genre:null, severity:'warning',message:'月4回→月2回に頻度低下。来店客数が減っている模様。',resolved:false},
+  {empId:'emp_abi',empName:'阿比留 徹',empColor:'#f59e0b',storeId:'s267',storeName:'炭火焼 山里',              type:'volume_drop', genre:'ウイスキー',severity:'danger',message:'ウイスキー発注量が3ヶ月で−50%。高単価ジャンルの離脱リスク大。',resolved:false},
+  {empId:'emp_abi',empName:'阿比留 徹',empColor:'#f59e0b',storeId:'s398',storeName:'和食処 さくら亭',           type:'no_additional',genre:null, severity:'warning',message:'追加発注が2ヶ月ゼロ。発注量も固定化している。',resolved:true},
+];
+
+/* ─── 実データ：担当者別月次売上（2024-2026 MDB分析）─── */
+const REAL_REP_MONTHLY={
+  '今村 淳子':{color:'#ef4444',avatar:'今',
+    y2024:[3534079,3179127,3300933,4871739,4632846,3522291,5085938,4817582,4426517,4019219,4690386,5716791],
+    y2025:[3716257,3400594,4128042,6145389,5187447,4429243,6267456,5887988,4970977,5935076,5180503,8530095],
+    y2026:[5973457,4998443,5073497,1690430,0,0,0,0,0,0,0,0]},
+  '田中 良史':{color:'#06b6d4',avatar:'田',
+    y2024:[6255121,5808036,8528541,7442670,7867533,7470557,7356565,7956164,6805109,6998889,6934229,8916791],
+    y2025:[5738720,5651476,8469919,7902491,7544681,6922468,7787080,5606302,0,0,0,0],
+    y2026:[0,0,0,0,0,0,0,0,0,0,0,0],note:'2025年8月で担当引継ぎ'},
+  '谷口 亮介':{color:'#3b82f6',avatar:'谷',
+    y2024:[0,0,0,0,0,0,0,0,0,0,0,0],
+    y2025:[0,0,0,0,0,0,0,2560406,5352455,5114386,5328513,6276605],
+    y2026:[4814646,4011166,4969900,1112659,0,0,0,0,0,0,0,0],note:'2025年8月に田中から引継ぎ'},
+  '赤川 秀敏':{color:'#f97316',avatar:'赤',
+    y2024:[1911880,1300911,2124463,1832620,2483174,2002172,1237039,1144284,403072,578219,1968425,3228383],
+    y2025:[1623726,1354252,2276276,1742555,3029814,1476913,1938734,2308299,2129957,2221540,2175434,2172178],
+    y2026:[1760577,1984392,2534265,336155,0,0,0,0,0,0,0,0]},
+  '阿比留 徹':{color:'#f59e0b',avatar:'阿',
+    y2024:[0,0,0,0,0,0,0,1303826,1379111,2109370,1642035,2442842],
+    y2025:[1873740,1323812,3028880,2244250,1746124,2103847,2606198,2080977,1673556,2621724,2037182,2714978],
+    y2026:[2763238,2065963,2409508,448927,0,0,0,0,0,0,0,0]},
+  '川原 未香':{color:'#a855f7',avatar:'川',
+    y2024:[0,0,266850,979146,1182699,1260526,1323090,1101778,1311448,1141869,1671656,3519523],
+    y2025:[1762274,1846457,3967832,3276942,3995711,4339970,4431534,5623908,4784532,3705637,4476174,7265348],
+    y2026:[2889949,2602171,5362675,1031357,0,0,0,0,0,0,0,0]},
+  '奥田 玲晃':{color:'#22c55e',avatar:'奥',
+    y2024:[0,0,0,0,0,0,0,0,0,0,0,0],
+    y2025:[0,0,0,0,0,0,0,203512,462965,517212,517607,1015400],
+    y2026:[542145,1438361,1241273,194442,0,0,0,0,0,0,0,0],note:'2025年8月着任'},
+};
+
+/* ─── 実データ：危険顧客リスト（2026-04-07 MDB分析）─── */
+/* C-1追加: ウォレットシェア推定（2026-04-08 MDB分析） */
+const WALLET_STATS={total:407,lowShare:22,bigDrop:96};
+const WALLET_INDUSTRY=[
+  {label:'飲食（居酒屋系）', count:38, sales2025:8971020, market:35142429, share:25.5, action:'維持・深耕'},
+  {label:'宿泊',             count:4,  sales2025:635072,  market:3344575,  share:19.0, action:'定期提案強化'},
+  {label:'その他',           count:333,sales2025:15954895,market:106714266,share:15.0, action:'個別精査'},
+  {label:'法人',             count:18, sales2025:1272491, market:13760510, share:9.2,  action:'接触頻度UP'},
+  {label:'飲食（レストラン系）',count:5,sales2025:38151,  market:493464,   share:7.7,  action:'ニーズ再確認'},
+  {label:'医療・福祉',        count:8,  sales2025:39588,   market:581984,   share:6.8,  action:'担当見直し'},
+];
+/* A-1追加: 発注パターン異常シグナル */
+const SIGNAL_STATS={delay:76,skuDrop:57,both:20};
+const SIGNAL_BOTH_TOP=[
+  {name:'居酒屋 なすび',    rep:'田中 良史', repColor:'#06b6d4', silence:11, sales2025:1156218, avgGap24h2:12.5, avgGap25h1:35.0, skuDrop:-57.0},
+  {name:'Ｄｉａ５',        rep:'田中 良史', repColor:'#06b6d4', silence:11, sales2025:851360,  avgGap24h2:14.0, avgGap25h1:28.0, skuDrop:-45.2},
+  {name:'ﾌｰﾄﾞｻｰﾋﾞｽｸﾞﾙｰﾌﾟエアポート',rep:'田中 良史',repColor:'#06b6d4',silence:19,sales2025:510321,avgGap24h2:21.0,avgGap25h1:42.0,skuDrop:-38.0},
+  {name:'Bar Ｌｉｍｉｔ',   rep:'不明',      repColor:'#888',    silence:16, sales2025:344806,  avgGap24h2:18.0, avgGap25h1:38.0, skuDrop:-32.0},
+  {name:'STELLA',         rep:'不明',      repColor:'#888',    silence:74, sales2025:342052,  avgGap24h2:22.0, avgGap25h1:48.0, skuDrop:-41.0},
+  {name:'Bar Rooster',    rep:'赤川 秀敏', repColor:'#f97316', silence:11, sales2025:230791,  avgGap24h2:15.0, avgGap25h1:31.0, skuDrop:-35.0},
+  {name:'大村ロータリークラブ事務局',rep:'不明',repColor:'#888',silence:72,sales2025:159360,avgGap24h2:30.0,avgGap25h1:58.0,skuDrop:-40.0},
+  {name:'ﾅｲﾄｽﾎﾟｯﾄ 響HIBIKI',rep:'赤川 秀敏',repColor:'#f97316',silence:24,sales2025:99742,avgGap24h2:19.0,avgGap25h1:42.0,skuDrop:-33.0},
+  {name:'禅心寺',          rep:'今村 淳子', repColor:'#ef4444', silence:30, sales2025:93245,   avgGap24h2:25.0, avgGap25h1:52.0, skuDrop:-38.0},
+  {name:'しゃべりに conne',rep:'不明',      repColor:'#888',    silence:81, sales2025:77111,   avgGap24h2:28.0, avgGap25h1:62.0, skuDrop:-43.0},
+];
+const REAL_DANGER_BY_REP=[
+  {code:10,name:'今村 淳子',color:'#ef4444',avatar:'今',churn:72,high:21,warn:27,total:120,churnSales:3031296},
+  {code:11,name:'赤川 秀敏',color:'#f97316',avatar:'赤',churn:33,high:7, warn:20,total:60, churnSales:812480},
+  {code:23,name:'谷口 亮介',color:'#3b82f6',avatar:'谷',churn:1, high:0, warn:0, total:1,  churnSales:2434190},
+  {code:24,name:'奥田 玲晃',color:'#22c55e',avatar:'奥',churn:1, high:0, warn:0, total:1,  churnSales:752722},
+  {code:19,name:'川原 未香',color:'#a855f7',avatar:'川',churn:13,high:4, warn:2, total:19, churnSales:443506},
+  {code:4, name:'田中 良史',color:'#06b6d4',avatar:'田',churn:2, high:0, warn:1, total:3,  churnSales:474274},
+  {code:21,name:'阿比留 徹',color:'#f59e0b',avatar:'阿',churn:4, high:0, warn:1, total:6,  churnSales:119990},
+];
+const REAL_DANGER_TOP20=[
+  {name:'居酒屋 太鼓　樽用',    rep:'谷口 亮介',repColor:'#3b82f6',danger:'離反確定',lastDate:'2025/09/30',silence:189,sales2025:2434190},
+  {name:'想',                  rep:'奥田 玲晃',repColor:'#22c55e',danger:'離反確定',lastDate:'2025/10/29',silence:160,sales2025:752722},
+  {name:'焼肉ﾀﾞｲﾆﾝｸﾞ 希らら亭', rep:'田中 良史',repColor:'#06b6d4',danger:'離反確定',lastDate:'2025/08/30',silence:220,sales2025:382694},
+  {name:'顔面食堂 さくらちゃん', rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2026/01/16',silence:81, sales2025:314478},
+  {name:'大村湾ｶﾝﾄﾘｰ倶楽部',   rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/08/05',silence:245,sales2025:235200},
+  {name:'味楽 海上自衛隊大村航空隊',rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/19',silence:109,sales2025:222531},
+  {name:'羅甸（らてん）',        rep:'川原 未香',repColor:'#a855f7',danger:'離反確定',lastDate:'2026/02/27',silence:39, sales2025:197706},
+  {name:'長崎ｲﾝﾀｰﾅｼｮﾅﾙﾎﾃﾙ(桜華)',rep:'赤川 秀敏',repColor:'#f97316',danger:'離反確定',lastDate:'2025/11/10',silence:148,sales2025:185116},
+  {name:'㈱永尾開発',            rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2026/01/05',silence:92, sales2025:140500},
+  {name:'合同モータース㈱',       rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2026/04/06',silence:1,  sales2025:133632},
+  {name:'㈱ノザワ',              rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/01',silence:127,sales2025:123398},
+  {name:'大村市漁業協同組合',     rep:'川原 未香',repColor:'#a855f7',danger:'離反確定',lastDate:'2025/12/01',silence:127,sales2025:111360},
+  {name:'高瀬建設㈱',            rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/01',silence:127,sales2025:111220},
+  {name:'海自第22航空群司令部',   rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/26',silence:102,sales2025:110280},
+  {name:'おおむら夏越まつり協賛会',rep:'赤川 秀敏',repColor:'#f97316',danger:'離反確定',lastDate:'2025/08/04',silence:246,sales2025:106540},
+  {name:'㈱ナカガワ',            rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/18',silence:110,sales2025:102000},
+  {name:'居酒屋 さんしん',        rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/03/21',silence:382,sales2025:99308},
+  {name:'出口解体工',            rep:'阿比留 徹',repColor:'#f59e0b',danger:'離反確定',lastDate:'2025/12/22',silence:106,sales2025:98580},
+  {name:'陸自 大村駐屯地',        rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/06/30',silence:281,sales2025:94925},
+  {name:'㈱ﾃﾚﾋﾞｸﾘｴｲｼｮﾝｼﾞｬﾊﾟﾝ', rep:'今村 淳子',repColor:'#ef4444',danger:'離反確定',lastDate:'2025/12/29',silence:99, sales2025:92800},
+];
+
 const MOCK_ACCOUNTS=[
   {customer:'山田酒店',balance:280000,due:'2026-04-10',status:'normal', overdue:0},
   {customer:'佐藤商店',balance:186000,due:'2026-04-15',status:'normal', overdue:0},
@@ -394,6 +567,19 @@ const MOCK_ACCOUNTS=[
   {customer:'高橋商事',balance:156000,due:'2026-04-05',status:'warning',overdue:0},
   {customer:'伊藤酒店',balance:312000,due:'2026-03-28',status:'overdue',overdue:9},
 ];
+
+/* ─── トースト通知 ─── */
+function toast(msg, type='info', duration=4000){
+  const c=document.getElementById('toast-container');
+  const el=document.createElement('div');
+  const icons={info:'ℹ️',success:'✅',error:'❌',warning:'⚠️'};
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),400);},duration);
+  return el;
+}
 
 /* ─── ユーティリティ ─── */
 function bonusLabel(s){if(s>=120)return'×1.30';if(s>=110)return'×1.20';if(s>=100)return'×1.10';if(s>=85)return'×1.05';return'×1.00';}
@@ -412,7 +598,7 @@ function pageHd(title,sub){return`<div class="page-hd"><h2>${title}</h2>${sub?`<
 /* ─── ルーティング ─── */
 function renderPage(id){
   const c=document.getElementById('content');
-  const map={dashboard:renderDashboard,delivery_all:renderDeliveryAll,delivery_emp:renderDeliveryEmp,store:renderStore,ranking:renderRanking,evaluations:renderEvaluations,orders:renderOrders,employees:renderEmployees,myeval:renderMyEval,mydelivery:renderMyDelivery,saleswork:renderSalesWork,accwork:renderAccWork,storework:renderStoreWork};
+  const map={dashboard:renderDashboard,delivery_all:renderDeliveryAll,delivery_emp:renderDeliveryEmp,store:renderStore,ranking:renderRanking,evaluations:renderEvaluations,orders:renderOrders,employees:renderEmployees,retention:renderRetention,danger:renderDangerList,trend:renderTrend,attendance:renderAttendanceDash,mf_finance:renderMFFinance,myeval:renderMyEval,mydelivery:renderMyDelivery,saleswork:renderSalesWork,accwork:renderAccWork,storework:renderStoreWork};
   c.innerHTML=(map[id]||renderDashboard)();
 }
 
@@ -630,12 +816,14 @@ function renderDeliveryAll(){
           <th class="num">売上額</th><th class="num">目標</th><th class="num">達成率</th>
           <th class="num">粗利率</th><th class="num">新商品</th><th class="num">TG商品</th>
           <th class="num">売掛回収</th><th class="num">CL</th><th class="num">欠勤</th><th class="num">遅刻</th><th>車両点検</th>
+          <th class="num" style="border-left:1px solid var(--bd2)">朝メーター</th><th class="num">夕メーター</th><th class="num">本日走行</th><th class="num">月間走行</th>
         </tr></thead>
         <tbody>
           ${MOCK_DELIVERY.map(d=>{
             const cr=(d.containers/d.containerTarget*100).toFixed(0);
             const sr=(d.sales/d.salesTarget*100).toFixed(0);
             const rr=(d.accountsReceivable/d.receivableTarget*100).toFixed(0);
+            const todayKm=d.endMeter&&d.startMeter?d.endMeter-d.startMeter:null;
             return `<tr>
               <td><div style="display:flex;align-items:center;gap:7px"><div class="av av-sm" style="background:${d.color}">${d.avatar}</div><span style="font-weight:500">${d.name}</span></div></td>
               <td class="num">${d.deliveries}</td>
@@ -653,6 +841,10 @@ function renderDeliveryAll(){
               <td class="num" style="color:${d.absent>0?'#f5a623':'var(--tx2)'}">${d.absent}日</td>
               <td class="num" style="color:${d.late>0?'#f5a623':'var(--tx2)'}">${d.late}回</td>
               <td style="text-align:center"><span class="badge ${d.vehicleCheck?'badge-green':'badge-red'}">${d.vehicleCheck?'✓ OK':'✗ 未'}</span></td>
+              <td class="num" style="border-left:1px solid var(--bd2);color:var(--tx2)">${d.startMeter?d.startMeter.toLocaleString()+' km':'<span style="color:var(--tx3)">—</span>'}</td>
+              <td class="num">${d.endMeter?d.endMeter.toLocaleString()+' km':'<span style="color:#f5a623;font-size:10px">未入力</span>'}</td>
+              <td class="num">${todayKm!==null?`<span class="ok">${todayKm.toLocaleString()} km</span>`:'<span style="color:var(--tx3)">—</span>'}</td>
+              <td class="num" style="color:var(--tx2)">${d.monthlyKm?d.monthlyKm.toLocaleString()+' km':'—'}</td>
             </tr>`;
           }).join('')}
           <tr class="tbl-total">
@@ -669,6 +861,10 @@ function renderDeliveryAll(){
             <td class="num" style="color:${tot.claims>0?'#f54e6e':'#10d9a0'}">${tot.claims}</td>
             <td class="num">${tot.absent}日</td><td class="num">${tot.late}回</td>
             <td></td>
+            <td class="num" style="border-left:1px solid var(--bd2);color:var(--tx3)">—</td>
+            <td class="num" style="color:var(--tx3)">—</td>
+            <td class="num"><span class="ok">${MOCK_DELIVERY.filter(d=>d.endMeter&&d.startMeter).reduce((a,d)=>a+(d.endMeter-d.startMeter),0).toLocaleString()} km</span></td>
+            <td class="num" style="color:var(--tx2)">${MOCK_DELIVERY.reduce((a,d)=>a+(d.monthlyKm||0),0).toLocaleString()} km</td>
           </tr>
         </tbody>
       </table>
@@ -717,6 +913,12 @@ function renderDeliveryEmp(){
     <div class="kpi ${d.claims>0?'red':'green'}"><div class="kpi-l">クレーム</div><div class="kpi-v sm" style="color:${d.claims>0?'#f54e6e':'#10d9a0'}">${d.claims}件</div></div>
     <div class="kpi ${d.absent>0?'red':'green'}"><div class="kpi-l">欠勤</div><div class="kpi-v sm" style="color:${d.absent>0?'#f5a623':'#10d9a0'}">${d.absent}日</div></div>
     <div class="kpi ${d.late>1?'red':d.late>0?'amber':'green'}"><div class="kpi-l">遅刻</div><div class="kpi-v sm" style="color:${d.late>0?'#f5a623':'#10d9a0'}">${d.late}回</div></div>
+  </div>
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi"><div class="kpi-l">🌅 朝メーター</div><div class="kpi-v sm" style="color:var(--tx)">${d.startMeter?d.startMeter.toLocaleString()+' km':'<span style="color:#f5a623;font-size:14px">未入力</span>'}</div><div class="kpi-sub">業務開始時オドメーター</div></div>
+    <div class="kpi ${d.endMeter?'':'amber'}"><div class="kpi-l">🌆 夕メーター</div><div class="kpi-v sm" style="color:var(--tx)">${d.endMeter?d.endMeter.toLocaleString()+' km':'<span style="color:#f5a623;font-size:14px">未入力</span>'}</div><div class="kpi-sub">業務終了時オドメーター</div></div>
+    <div class="kpi ${d.endMeter&&d.startMeter?'green':''}"><div class="kpi-l">本日走行距離</div><div class="kpi-v sm ${d.endMeter&&d.startMeter?'ok':''}">${d.endMeter&&d.startMeter?(d.endMeter-d.startMeter).toLocaleString()+' km':'<span style="color:var(--tx3)">—</span>'}</div><div class="kpi-sub">夕−朝メーター</div></div>
+    <div class="kpi"><div class="kpi-l">月間走行距離</div><div class="kpi-v sm" style="color:var(--tx2)">${d.monthlyKm?d.monthlyKm.toLocaleString()+' km':'—'}</div><div class="kpi-sub">今月累計</div></div>
   </div>
   <div class="panel">
     <div class="panel-head"><div class="panel-title">評価スコア詳細</div><span class="panel-sub">2026-Q1</span></div>
@@ -970,6 +1172,974 @@ function renderMyDelivery(){
   </div>`;
 }
 
+/* ══════════════════════════════════════════
+   評価検証（顧客維持率・チャーン兆候）
+══════════════════════════════════════════ */
+let retChurnFilter='all'; // 'all' | empId | 'unresolved' | 'danger'
+function renderRetention(){
+  const emps=Object.entries(MOCK_GENRE_RETENTION);
+  const CHURN_LABEL={frequency_drop:'発注頻度低下',volume_drop:'発注量減少',genre_stop:'ジャンル離脱',payment_delay:'支払遅延',no_additional:'追加注文消滅'};
+  const CHURN_ICON ={frequency_drop:'📉',volume_drop:'📦',genre_stop:'🔕',payment_delay:'⏰',no_additional:'🛒'};
+  const allGenres=[...new Set(emps.flatMap(([,v])=>v.genres.map(g=>g.genre)))];
+
+  // 集計
+  const totMaintained=emps.filter(([k])=>k!=='emp_aka').reduce((s,[,v])=>s+v.genres.reduce((a,g)=>a+g.maintained,0),0);
+  const totCustomers =emps.filter(([k])=>k!=='emp_aka').reduce((s,[,v])=>s+v.genres.reduce((a,g)=>a+g.total,0),0);
+  const overallRate  =Math.round(totMaintained/totCustomers*100);
+  const totalChurn   =MOCK_CHURN.length;
+  const unresolvedC  =MOCK_CHURN.filter(c=>!c.resolved).length;
+  const dangerC      =MOCK_CHURN.filter(c=>c.severity==='danger'&&!c.resolved).length;
+  const resolvedC    =MOCK_CHURN.filter(c=>c.resolved).length;
+
+  // フィルター後チャーン一覧
+  let filtered=MOCK_CHURN;
+  if(retChurnFilter==='unresolved') filtered=MOCK_CHURN.filter(c=>!c.resolved);
+  else if(retChurnFilter==='danger') filtered=MOCK_CHURN.filter(c=>c.severity==='danger');
+  else if(retChurnFilter!=='all') filtered=MOCK_CHURN.filter(c=>c.empId===retChurnFilter);
+
+  // 全体維持率バー
+  const overallCls=overallRate>=85?'ok':overallRate>=70?'warn':'down';
+
+  return pageHd('評価検証','ジャンル別顧客維持率 · チャーン兆候 | 2026年3月')+`
+
+  <!-- ━━ 概要KPI ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi ${overallRate>=85?'green':overallRate>=70?'amber':'red'}">
+      <div class="kpi-l">📊 チーム全体 顧客維持率</div>
+      <div class="kpi-v ${overallCls}">${overallRate}<span style="font-size:16px">%</span></div>
+      <div class="kpi-sub">${totMaintained}店継続 ／ 対象${totCustomers}店</div>
+    </div>
+    <div class="kpi ${dangerC>0?'red':unresolvedC>0?'amber':'green'}">
+      <div class="kpi-l">⚠️ 未対処チャーン兆候</div>
+      <div class="kpi-v ${dangerC>0?'down':unresolvedC>0?'warn':'ok'}">${unresolvedC}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">うち要対応（危険） ${dangerC}件</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-l">✅ 対処済み兆候</div>
+      <div class="kpi-v ok">${resolvedC}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">対処率 ${Math.round(resolvedC/totalChurn*100)}%（計${totalChurn}件中）</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">🏅 対処スコア反映</div>
+      <div class="kpi-v">${emps.filter(([k])=>k!=='emp_aka').reduce((s,[,v])=>s+v.respondedCount,0)}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">評価対象の対処件数（今月）</div>
+    </div>
+  </div>
+
+  <!-- ━━ ジャンル×社員 クロス集計 ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head"><div class="panel-title">ジャンル×社員 維持率マトリクス</div><span class="panel-sub">緑≥85% ／ 橙70-84% ／ 赤＜70%</span></div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>ジャンル</th>
+          ${emps.filter(([k])=>k!=='emp_aka').map(([,v])=>`<th style="text-align:center"><div class="av av-sm" style="background:${v.color};margin:0 auto 3px">${v.avatar}</div><div style="font-size:10px">${v.name.split(' ')[0]}</div></th>`).join('')}
+          <th style="text-align:center;border-left:1px solid var(--bd2)">チーム平均</th>
+        </tr></thead>
+        <tbody>${allGenres.map(genre=>{
+          const cells=emps.filter(([k])=>k!=='emp_aka').map(([,v])=>{
+            const g=v.genres.find(x=>x.genre===genre);
+            if(!g) return `<td class="num" style="color:var(--tx3)">—</td>`;
+            const r=Math.round(g.maintained/g.total*100);
+            const prev=g.prevRate??r;
+            const diff=r-prev;
+            const bg=r>=85?'rgba(16,217,160,.12)':r>=70?'rgba(245,166,35,.10)':'rgba(245,78,110,.10)';
+            const col=r>=85?'#10d9a0':r>=70?'#f5a623':'#f54e6e';
+            const arrow=diff>0?`<span style="color:#10d9a0;font-size:9px">▲${diff}</span>`:diff<0?`<span style="color:#f54e6e;font-size:9px">▼${Math.abs(diff)}</span>`:'';
+            return `<td style="text-align:center;background:${bg}"><span style="color:${col};font-weight:700;font-size:13px">${r}%</span><br>${arrow}</td>`;
+          });
+          // チーム平均
+          const teamG=MOCK_GENRE_RETENTION.emp_aka.genres.find(x=>x.genre===genre);
+          const tr2=teamG?Math.round(teamG.maintained/teamG.total*100):null;
+          const teamBg=tr2==null?'':(tr2>=85?'rgba(16,217,160,.08)':tr2>=70?'rgba(245,166,35,.08)':'rgba(245,78,110,.08)');
+          const teamCol=tr2==null?'var(--tx3)':(tr2>=85?'#10d9a0':tr2>=70?'#f5a623':'#f54e6e');
+          return `<tr><td style="font-weight:600">${genre}</td>${cells.join('')}<td style="text-align:center;border-left:1px solid var(--bd2);background:${teamBg}"><span style="color:${teamCol};font-weight:800;font-size:14px">${tr2!=null?tr2+'%':'—'}</span></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ 社員別 ジャンル維持率バー ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head"><div class="panel-title">社員別 ジャンル別顧客維持率</div><span class="panel-sub">クリックで詳細展開</span></div>
+    <div class="panel-body" style="padding:0">
+      ${emps.map(([empId,v])=>{
+        const totM=v.genres.reduce((s,g)=>s+g.maintained,0);
+        const totT=v.genres.reduce((s,g)=>s+g.total,0);
+        const overall=Math.round(totM/totT*100);
+        const col=overall>=85?'#10d9a0':overall>=70?'#f5a623':'#f54e6e';
+        const pct=overall;
+        return `<div class="eval-card" onclick="this.classList.toggle('open')">
+          <div class="eval-head">
+            <div class="av av-md" style="background:${v.color}">${v.avatar}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--tx)">${v.name}
+                ${v.isTeam?'<span style="font-size:10px;color:var(--tx3);margin-left:6px">チーム合算</span>':''}
+              </div>
+              <div style="font-size:11px;color:var(--tx2)">${v.role} &nbsp;·&nbsp; 対処件数 <b style="color:var(--tx)">${v.respondedCount}件</b></div>
+            </div>
+            <div style="text-align:right;min-width:90px">
+              <div style="font-size:26px;font-weight:900;color:${col};line-height:1">${overall}%</div>
+              <div style="font-size:10px;color:var(--tx2);margin-top:2px">全体維持率</div>
+            </div>
+          </div>
+          <div class="eval-body">
+            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:14px">
+              <div style="width:${pct}%;height:100%;background:${col};border-radius:3px;opacity:.8"></div>
+            </div>
+            ${v.genres.map(g=>{
+              const r=Math.round(g.maintained/g.total*100);
+              const prev=g.prevRate??r;
+              const diff=r-prev;
+              const bc=r>=85?'#10d9a0':r>=70?'#f5a623':'#f54e6e';
+              const arrow=diff>0?`<span style="color:#10d9a0;font-size:10px">▲+${diff}%</span>`:diff<0?`<span style="color:#f54e6e;font-size:10px">▼${diff}%</span>`:'<span style="color:var(--tx3);font-size:10px">±0</span>';
+              return `<div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-size:12px;color:var(--tx2)">${g.genre}</span>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    ${arrow}
+                    <span style="color:var(--tx3);font-size:11px">${g.maintained}/${g.total}</span>
+                    <span style="color:${bc};font-size:13px;font-weight:700;min-width:36px;text-align:right">${r}%</span>
+                  </div>
+                </div>
+                <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+                  <div style="width:${r}%;height:100%;background:${bc};border-radius:3px;opacity:.75"></div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- ━━ チャーン兆候一覧 ━━ -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">チャーン兆候 一覧</div>
+      <span class="panel-sub">${totalChurn}件中 未対処${unresolvedC}件</span>
+    </div>
+    <div style="padding:10px 14px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--bd)">
+      <button onclick="retChurnFilter='all';showPage('retention',document.getElementById('nav-retention'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${retChurnFilter==='all'?'var(--ac)':'var(--bd)'};background:${retChurnFilter==='all'?'var(--ac-bg)':'var(--sf)'};color:${retChurnFilter==='all'?'#fb923c':'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">全員（${totalChurn}）</button>
+      <button onclick="retChurnFilter='unresolved';showPage('retention',document.getElementById('nav-retention'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${retChurnFilter==='unresolved'?'#f5a623':'var(--bd)'};background:${retChurnFilter==='unresolved'?'rgba(245,166,35,.1)':'var(--sf)'};color:${retChurnFilter==='unresolved'?'#f5a623':'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">未対処（${unresolvedC}）</button>
+      <button onclick="retChurnFilter='danger';showPage('retention',document.getElementById('nav-retention'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${retChurnFilter==='danger'?'#f54e6e':'var(--bd)'};background:${retChurnFilter==='danger'?'rgba(245,78,110,.1)':'var(--sf)'};color:${retChurnFilter==='danger'?'#f54e6e':'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">要対応（${dangerC}）</button>
+      ${emps.filter(([k])=>k!=='emp_aka').map(([eid,v])=>{
+        const ec=MOCK_CHURN.filter(c=>c.empId===eid).length;
+        return `<button onclick="retChurnFilter='${eid}';showPage('retention',document.getElementById('nav-retention'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${retChurnFilter===eid?v.color:'var(--bd)'};background:${retChurnFilter===eid?v.color+'22':'var(--sf)'};color:${retChurnFilter===eid?v.color:'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit"><span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:${v.color};font-size:8px;font-weight:700;color:#fff;margin-right:4px">${v.avatar}</span>${v.name.split(' ')[0]}（${ec}）</button>`;
+      }).join('')}
+    </div>
+    <div class="panel-body" style="padding:10px 14px">
+      ${filtered.length===0?'<div style="text-align:center;color:var(--tx3);padding:20px;font-size:13px">該当する兆候はありません</div>':''}
+      ${filtered.map(c=>{
+        const bg=c.resolved?'rgba(16,217,160,.04)':c.severity==='danger'?'rgba(245,78,110,.06)':'rgba(245,166,35,.06)';
+        const bd=c.resolved?'rgba(16,217,160,.18)':c.severity==='danger'?'rgba(245,78,110,.22)':'rgba(245,166,35,.2)';
+        return `<div style="padding:12px 14px;border-radius:var(--r);border:1px solid ${bd};background:${bg};margin-bottom:8px;opacity:${c.resolved?.75:1}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:16px">${CHURN_ICON[c.type]}</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <span style="font-size:13px;font-weight:700;color:var(--tx)">${c.storeName}</span>
+                ${c.genre?`<span style="font-size:10px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 6px;color:var(--tx2)">${c.genre}</span>`:''}
+                <span class="badge ${c.resolved?'badge-green':c.severity==='danger'?'badge-red':'badge-amber'}">${c.resolved?'✅ 対処済':'⚠️ '+CHURN_LABEL[c.type]}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+                <div class="av av-sm" style="background:${c.empColor}">${c.empName[0]}</div>
+                <span style="font-size:11px;color:var(--tx2)">${c.empName} &nbsp;·&nbsp; ${CHURN_LABEL[c.type]}</span>
+              </div>
+            </div>
+            <span style="font-size:18px">${c.resolved?'✅':c.severity==='danger'?'🔴':'🟡'}</span>
+          </div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.6;padding-left:26px">${c.message}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- ━━ 定性評価サマリー（熱量・関係温度感）━━ -->
+  <div class="panel" style="margin-top:14px">
+    <div class="panel-head">
+      <div class="panel-title">✨ 定性評価サマリー（熱量・関係温度感）</div>
+      <span class="panel-sub">上司による4軸評価 ― 1〜5段階</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>社員</th>
+          <th style="text-align:center">🔥 熱量</th>
+          <th style="text-align:center">🤝 関係温度感</th>
+          <th style="text-align:center">👥 チーム貢献</th>
+          <th style="text-align:center">📈 成長意欲</th>
+          <th style="text-align:center">平均</th>
+          <th>評価コメント</th>
+        </tr></thead>
+        <tbody>${Object.entries(MOCK_QUAL_SCORES).map(([id,q])=>{
+          const emp=MOCK_GENRE_RETENTION[id]||{name:id,color:'#888',avatar:'?'};
+          const avg=((q.enthusiasm+q.relationship+q.teamwork+q.growthMindset)/4).toFixed(1);
+          const avgCol=+avg>=4.5?'#fbbf24':+avg>=3.5?'#34d399':+avg>=2.5?'#f59e0b':'#f87171';
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:7px">
+              <div class="av av-sm" style="background:${emp.color||'#888'}">${emp.avatar||'?'}</div>
+              <div>
+                <div style="font-weight:700;font-size:13px">${emp.name||id}</div>
+                <div style="font-size:10px;color:var(--tx3)">${emp.role||''}</div>
+              </div>
+            </div></td>
+            <td style="text-align:center"><span style="color:#f97316;font-weight:800;font-size:15px">${q.enthusiasm}</span><span style="color:rgba(255,255,255,0.2);font-size:11px">/5</span></td>
+            <td style="text-align:center"><span style="color:#22c55e;font-weight:800;font-size:15px">${q.relationship}</span><span style="color:rgba(255,255,255,0.2);font-size:11px">/5</span></td>
+            <td style="text-align:center"><span style="color:#3b82f6;font-weight:800;font-size:15px">${q.teamwork}</span><span style="color:rgba(255,255,255,0.2);font-size:11px">/5</span></td>
+            <td style="text-align:center"><span style="color:#a855f7;font-weight:800;font-size:15px">${q.growthMindset}</span><span style="color:rgba(255,255,255,0.2);font-size:11px">/5</span></td>
+            <td style="text-align:center"><span style="color:${avgCol};font-weight:800;font-size:15px">${avg}</span></td>
+            <td style="font-size:11px;color:var(--tx2);max-width:280px">${q.comment||''}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   危険顧客リスト（実データ 2026-04-07）
+══════════════════════════════════════════ */
+let dangerRepFilter='all';
+function renderDangerList(){
+  const totalChurn=REAL_DANGER_BY_REP.reduce((s,r)=>s+r.churn,0);
+  const totalHigh =REAL_DANGER_BY_REP.reduce((s,r)=>s+r.high,0);
+  const totalWarn =REAL_DANGER_BY_REP.reduce((s,r)=>s+r.warn,0);
+  const totalSales=REAL_DANGER_BY_REP.reduce((s,r)=>s+r.churnSales,0);
+  const maxChurn  =Math.max(...REAL_DANGER_BY_REP.map(r=>r.churn));
+
+  const filtered=dangerRepFilter==='all'?REAL_DANGER_TOP20:REAL_DANGER_TOP20.filter(c=>c.rep===dangerRepFilter);
+
+  return pageHd('危険顧客リスト','MDBデータ実分析 2026-04-07 ・ 2025年活動 → 2026年Q1ゼロ判定')+`
+
+  <!-- ━━ 概要KPI ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi red">
+      <div class="kpi-l">🔴 離反確定</div>
+      <div class="kpi-v down">${totalChurn}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">2025年活動 → 2026Q1発注ゼロ</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-l">🟡 高危険</div>
+      <div class="kpi-v warn">${totalHigh}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">後半活動≤1ヶ月（精度66%）</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">⚪ 要注意</div>
+      <div class="kpi-v sm">${totalWarn}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">沈黙90日以上</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-l">💰 離反確定 売上計</div>
+      <div class="kpi-v down" style="font-size:18px">¥${(totalSales/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
+      <div class="kpi-sub">2025年の年間売上合計</div>
+    </div>
+  </div>
+
+  <!-- ━━ 新シグナルKPI ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi">
+      <div class="kpi-l">⏰ 発注後ろ倒し</div>
+      <div class="kpi-v warn">${SIGNAL_STATS.delay}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">2024H2→2025で間隔1.5倍以上</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">📦 SKU種類減少</div>
+      <div class="kpi-v warn">${SIGNAL_STATS.skuDrop}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">2024→2025で明細行-30%以上</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-l">🚨 複合リスク</div>
+      <div class="kpi-v down">${SIGNAL_STATS.both}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">後ろ倒し＋SKU減少 重複</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">📊 全顧客中シグナル率</div>
+      <div class="kpi-v sm">${((SIGNAL_STATS.delay+SIGNAL_STATS.skuDrop-SIGNAL_STATS.both)/467*100).toFixed(0)}<span style="font-size:16px">%</span></div>
+      <div class="kpi-sub">467顧客中 113件（重複除く）</div>
+    </div>
+  </div>
+
+  <!-- ━━ 複合リスク顧客（後ろ倒し＋SKU減少）━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">🚨 複合リスク顧客 TOP10（後ろ倒し＋SKU減少 両方検出）</div>
+      <span class="panel-sub" style="color:#f54e6e">離反前兆の最優先フォロー対象</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>得意先名</th><th>担当者</th>
+          <th style="text-align:right">2025年売上</th>
+          <th style="text-align:center">沈黙日数</th>
+          <th style="text-align:right">発注間隔変化</th>
+          <th style="text-align:right">SKU変化率</th>
+        </tr></thead>
+        <tbody>${SIGNAL_BOTH_TOP.map(c=>{
+          const silCol=c.silence>=90?'#f54e6e':c.silence>=30?'#f5a623':'#7a92a8';
+          const gapRatio=c.avgGap24h2>0?(c.avgGap25h1/c.avgGap24h2).toFixed(1):'—';
+          return `<tr style="background:rgba(245,166,35,.04)">
+            <td style="font-weight:600;border-left:3px solid rgba(245,166,35,.4)">${c.name}</td>
+            <td><div style="display:flex;align-items:center;gap:5px">
+              <div class="av av-sm" style="background:${c.repColor}">${c.rep[0]}</div>
+              <span style="font-size:12px">${c.rep.split(' ')[0]}</span>
+            </div></td>
+            <td class="num" style="font-weight:700">¥${(c.sales2025/10000).toFixed(0)}万</td>
+            <td style="text-align:center;color:${silCol};font-weight:700">${c.silence}日</td>
+            <td class="num" style="color:#f5a623;font-weight:700">×${gapRatio}</td>
+            <td class="num" style="color:#f54e6e;font-weight:700">${c.skuDrop}%</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ 担当者別チャーン棒グラフ ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">担当者別 離反確定件数・売上</div>
+      <span class="panel-sub" style="color:#f54e6e">実データ（2025年活動→2026Q1ゼロ）</span>
+    </div>
+    <div class="panel-body">
+      ${REAL_DANGER_BY_REP.sort((a,b)=>b.churnSales-a.churnSales).map(r=>{
+        const barW=r.churn>0?Math.round(r.churn/maxChurn*100):5;
+        const salesM=(r.churnSales/10000).toFixed(0);
+        return `<div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div class="av av-sm" style="background:${r.color}">${r.avatar}</div>
+            <span style="font-weight:700;color:var(--tx);font-size:13px">${r.name}</span>
+            <div style="display:flex;gap:5px;margin-left:auto">
+              <span style="padding:2px 8px;border-radius:4px;background:rgba(245,78,110,.12);border:1px solid rgba(245,78,110,.25);color:#f54e6e;font-size:11px;font-weight:700">離反${r.churn}件</span>
+              ${r.high>0?`<span style="padding:2px 8px;border-radius:4px;background:rgba(245,166,35,.10);border:1px solid rgba(245,166,35,.22);color:#f5a623;font-size:11px;font-weight:700">高危険${r.high}件</span>`:''}
+              <span style="padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--tx2);font-size:11px">¥${salesM}万</span>
+            </div>
+          </div>
+          <div style="height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+            <div style="width:${barW}%;height:100%;background:${r.color};border-radius:4px;opacity:.85"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- ━━ 担当者フィルター ━━ -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">離反確定 TOP20（2025売上順）</div>
+      <span class="panel-sub">${REAL_DANGER_TOP20.length}件表示（全${totalChurn}件中）</span>
+    </div>
+    <div style="padding:10px 14px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--bd)">
+      <button onclick="dangerRepFilter='all';showPage('danger',document.getElementById('nav-danger'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${dangerRepFilter==='all'?'var(--ac)':'var(--bd)'};background:${dangerRepFilter==='all'?'var(--ac-bg)':'var(--sf)'};color:${dangerRepFilter==='all'?'#fb923c':'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">全員（${REAL_DANGER_TOP20.length}）</button>
+      ${[...new Set(REAL_DANGER_TOP20.map(c=>c.rep))].map(rep=>{
+        const r=REAL_DANGER_BY_REP.find(x=>x.name===rep);
+        const cnt=REAL_DANGER_TOP20.filter(c=>c.rep===rep).length;
+        const col=r?r.color:'#888';
+        return `<button onclick="dangerRepFilter='${rep}';showPage('danger',document.getElementById('nav-danger'))" style="padding:4px 12px;border-radius:5px;border:1px solid ${dangerRepFilter===rep?col:'var(--bd)'};background:${dangerRepFilter===rep?col+'22':'var(--sf)'};color:${dangerRepFilter===rep?col:'var(--tx2)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${rep.split(' ')[0]}（${cnt}）</button>`;
+      }).join('')}
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>得意先名</th><th>担当者</th><th>区分</th>
+          <th style="text-align:right">2025年売上</th>
+          <th style="text-align:center">最終発注日</th>
+          <th style="text-align:right">沈黙日数</th>
+        </tr></thead>
+        <tbody>${filtered.map(c=>{
+          const silCol=c.silence>=180?'#f54e6e':c.silence>=90?'#f5a623':'#7a92a8';
+          const dangerBg=c.danger==='離反確定'?'rgba(245,78,110,.04)':'rgba(245,166,35,.04)';
+          const dangerBd=c.danger==='離反確定'?'rgba(245,78,110,.15)':'rgba(245,166,35,.15)';
+          const dangerCol=c.danger==='離反確定'?'#f54e6e':'#f5a623';
+          return `<tr style="background:${dangerBg}">
+            <td style="font-weight:600;border-left:3px solid ${dangerBd}">${c.name}</td>
+            <td><div style="display:flex;align-items:center;gap:5px">
+              <div class="av av-sm" style="background:${c.repColor}">${c.rep[0]}</div>
+              <span style="font-size:12px">${c.rep.split(' ')[0]}</span>
+            </div></td>
+            <td><span style="padding:2px 7px;border-radius:4px;background:${dangerBd};color:${dangerCol};font-size:11px;font-weight:700">${c.danger}</span></td>
+            <td class="num" style="font-weight:700">¥${c.sales2025.toLocaleString()}</td>
+            <td style="text-align:center;font-size:12px;color:var(--tx2)">${c.lastDate}</td>
+            <td class="num" style="color:${silCol};font-weight:700">${c.silence}日</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ ウォレットシェア推定 ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi">
+      <div class="kpi-l">💼 分析対象顧客</div>
+      <div class="kpi-v sm">${WALLET_STATS.total}<span style="font-size:16px">社</span></div>
+      <div class="kpi-sub">2023〜2025年活動顧客</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-l">📉 低シェア顧客（＜15%）</div>
+      <div class="kpi-v warn">${WALLET_STATS.lowShare}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">推定シェア15%未満 = 機会損失</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-l">📦 売上大幅減少（>20%）</div>
+      <div class="kpi-v down">${WALLET_STATS.bigDrop}<span style="font-size:16px">件</span></div>
+      <div class="kpi-sub">2024→2025で売上20%超減</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-l">🍺 最高シェア業種</div>
+      <div class="kpi-v ok" style="font-size:20px">25.5<span style="font-size:16px">%</span></div>
+      <div class="kpi-sub">飲食（居酒屋系）38社平均</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">💼 業種別 推定ウォレットシェア（MDB実データ 2025年）</div>
+      <span class="panel-sub">業種ごとに推定総市場規模を算出し、当社売上÷推定市場でシェア率を計算</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>業種</th>
+          <th style="text-align:right">顧客数</th>
+          <th style="text-align:right">当社売上合計</th>
+          <th style="text-align:right">推定市場規模</th>
+          <th style="text-align:center">推定シェア</th>
+          <th>アクション</th>
+        </tr></thead>
+        <tbody>${WALLET_INDUSTRY.map(r=>{
+          const barW=Math.min(r.share,50)*2;
+          const col=r.share>=20?'#10d9a0':r.share>=12?'#f5a623':'#f54e6e';
+          const bg=r.share>=20?'rgba(16,217,160,.08)':r.share>=12?'rgba(245,166,35,.06)':'rgba(245,78,110,.06)';
+          return `<tr style="background:${bg}">
+            <td style="font-weight:600">${r.label}</td>
+            <td class="num">${r.count}</td>
+            <td class="num">¥${(r.sales2025/10000).toFixed(0)}万</td>
+            <td class="num" style="color:var(--tx2)">¥${(r.market/10000).toFixed(0)}万</td>
+            <td style="text-align:center">
+              <div style="display:flex;align-items:center;gap:6px;justify-content:center">
+                <div style="width:60px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+                  <div style="width:${barW}%;height:100%;background:${col};border-radius:3px"></div>
+                </div>
+                <span style="color:${col};font-weight:700;font-size:13px">${r.share}%</span>
+              </div>
+            </td>
+            <td><span style="padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--tx2);font-size:11px">${r.action}</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+      <div style="padding:8px 14px;font-size:11px;color:var(--tx3);border-top:1px solid var(--bd)">
+        ※推定方法: 業種別の自社シェア仮定（居酒屋系28%・宿泊20%・法人10%等）から逆算。実態は聞き取り調査で補正要。
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   月次推移 3年（実データ）
+══════════════════════════════════════════ */
+let trendRep=Object.keys(REAL_REP_MONTHLY)[0];
+function renderTrend(){
+  const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const reps=Object.entries(REAL_REP_MONTHLY);
+
+  // 全社合計を追加
+  const totalY24=Array(12).fill(0),totalY25=Array(12).fill(0),totalY26=Array(12).fill(0);
+  reps.forEach(([,v])=>{ v.y2024.forEach((x,i)=>totalY24[i]+=x); v.y2025.forEach((x,i)=>totalY25[i]+=x); v.y2026.forEach((x,i)=>totalY26[i]+=x); });
+
+  const selData=trendRep==='all'?{color:'#f97316',avatar:'全',y2024:totalY24,y2025:totalY25,y2026:totalY26}:REAL_REP_MONTHLY[trendRep];
+
+  // SVGライングラフ生成
+  function makeChart(y24,y25,y26,label){
+    const W=560,H=140,pad={l:38,r:10,t:12,b:22};
+    const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+    const allVals=[...y24,...y25,...y26].filter(x=>x>0);
+    if(!allVals.length) return '<div style="text-align:center;color:var(--tx3);padding:30px;font-size:12px">データなし</div>';
+    const maxV=Math.max(...allVals)*1.08;
+    const ym=n=>Math.round(n/10000);
+    const px=(i)=>pad.l+i*(iW/11);
+    const py=(v)=>pad.t+iH*(1-v/maxV);
+    const pts=(arr)=>arr.map((v,i)=>v>0?`${px(i)},${py(v)}`:'').filter(Boolean);
+
+    // y軸ラベル
+    const yTicks=[0,0.25,0.5,0.75,1].map(r=>Math.round(maxV*r/10000)*10000);
+    const yAxis=yTicks.map(v=>`
+      <line x1="${pad.l}" x2="${W-pad.r}" y1="${py(v)}" y2="${py(v)}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+      <text x="${pad.l-4}" y="${py(v)+4}" text-anchor="end" fill="#384d64" font-size="9">${ym(v)}万</text>`).join('');
+
+    // 線の生成（連続した点のみ接続）
+    function makePath(arr,col,dash=''){
+      const segs=[];let seg=[];
+      arr.forEach((v,i)=>{
+        if(v>0){seg.push(`${px(i)},${py(v)}`);}
+        else if(seg.length){segs.push(seg);seg=[];}
+      });
+      if(seg.length)segs.push(seg);
+      return segs.map(s=>`<polyline points="${s.join(' ')}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ${dash?`stroke-dasharray="${dash}"`:''}/>`).join('');
+    }
+    function makeDots(arr,col){
+      return arr.map((v,i)=>v>0?`<circle cx="${px(i)}" cy="${py(v)}" r="3" fill="${col}" stroke="var(--bg)" stroke-width="1.5"/>`:'').join('');
+    }
+
+    // x軸
+    const xAxis=MONTHS.map((m,i)=>`<text x="${px(i)}" y="${H-4}" text-anchor="middle" fill="#384d64" font-size="9">${m}</text>`).join('');
+
+    // YoY比テキスト（2025 vs 2024）
+    const yoyBars=y25.map((v25,i)=>{
+      const v24=y24[i];
+      if(!v25||!v24)return'';
+      const pct=Math.round((v25-v24)/v24*100);
+      const col=pct>=10?'#10d9a0':pct>=-10?'#f5a623':'#f54e6e';
+      return`<text x="${px(i)}" y="${py(v25)-7}" text-anchor="middle" fill="${col}" font-size="8" font-weight="700">${pct>0?'+':''}${pct}%</text>`;
+    }).join('');
+
+    return`<svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block;max-width:${W}px">
+      ${yAxis}${xAxis}
+      ${makePath(y24,'rgba(77,166,255,.45)','5,3')}
+      ${makePath(y25,'#f97316')}
+      ${makePath(y26,'rgba(249,115,22,.35)','3,3')}
+      ${makeDots(y24,'rgba(77,166,255,.7)')}
+      ${makeDots(y25,'#f97316')}
+      ${yoyBars}
+    </svg>`;
+  }
+
+  // KPI: 2025年合計 vs 2024年合計
+  const sum24=selData.y2024.reduce((a,b)=>a+b,0);
+  const sum25=selData.y2025.reduce((a,b)=>a+b,0);
+  const sum26=selData.y2026.reduce((a,b)=>a+b,0);
+  const yoy=sum24>0?((sum25-sum24)/sum24*100).toFixed(1):'-';
+  const yoy26q1=(()=>{
+    const q25=selData.y2025.slice(0,3).reduce((a,b)=>a+b,0);
+    const q26=selData.y2026.slice(0,3).reduce((a,b)=>a+b,0);
+    return q25>0?((q26-q25)/q25*100).toFixed(1):'-';
+  })();
+
+  return pageHd('月次推移 3年比較','実データ MDB分析 ・ 2024〜2026年')+`
+
+  <!-- ━━ 担当者選択 ━━ -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+    <button onclick="trendRep='all';showPage('trend',document.getElementById('nav-trend'))"
+      style="padding:5px 14px;border-radius:6px;border:1px solid ${trendRep==='all'?'var(--ac)':'var(--bd)'};background:${trendRep==='all'?'var(--ac-bg)':'var(--sf)'};color:${trendRep==='all'?'#fb923c':'var(--tx2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+      🏢 全社合計</button>
+    ${reps.map(([name,v])=>`
+    <button onclick="trendRep='${name}';showPage('trend',document.getElementById('nav-trend'))"
+      style="padding:5px 14px;border-radius:6px;border:1px solid ${trendRep===name?v.color:'var(--bd)'};background:${trendRep===name?v.color+'22':'var(--sf)'};color:${trendRep===name?v.color:'var(--tx2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:${v.color};font-size:9px;font-weight:700;color:#fff;margin-right:5px">${v.avatar}</span>${name.split(' ')[0]}</button>`).join('')}
+  </div>
+
+  <!-- ━━ KPI ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi">
+      <div class="kpi-l">📅 2024年 年間売上</div>
+      <div class="kpi-v sm">¥${(sum24/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
+    </div>
+    <div class="kpi ${+yoy>=0?'green':+yoy>=-10?'amber':'red'}">
+      <div class="kpi-l">📈 2025年 年間売上</div>
+      <div class="kpi-v ${+yoy>=0?'ok':+yoy>=-10?'warn':'down'}">¥${(sum25/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
+      <div class="kpi-sub">前年比 ${+yoy>=0?'▲':'▼'}${Math.abs(yoy)}%</div>
+    </div>
+    <div class="kpi ${+yoy26q1>=0?'green':'amber'}">
+      <div class="kpi-l">📊 2026年 Q1売上</div>
+      <div class="kpi-v sm">¥${(sum26/10000).toFixed(0)}<span style="font-size:14px">万</span></div>
+      <div class="kpi-sub">前年Q1比 ${+yoy26q1>=0?'▲':'▼'}${Math.abs(yoy26q1)}%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">📌 前年比（月平均）</div>
+      <div class="kpi-v ${+yoy>=5?'ok':+yoy>=-5?'warn':'down'}" style="font-size:22px">${+yoy>=0?'+':''}${yoy}<span style="font-size:14px">%</span></div>
+      ${selData.note?`<div class="kpi-sub" style="color:#f5a623">⚠️ ${selData.note}</div>`:''}
+    </div>
+  </div>
+
+  <!-- ━━ メイングラフ ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">${trendRep==='all'?'全社合計':trendRep} 月次売上推移</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--bl)"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="rgba(77,166,255,.6)" stroke-width="2" stroke-dasharray="4,2"/></svg> 2024年</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ac)"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#f97316" stroke-width="2.2"/></svg> 2025年</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx3)"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="rgba(249,115,22,.4)" stroke-width="2" stroke-dasharray="3,2"/></svg> 2026年</span>
+      </div>
+    </div>
+    <div class="panel-body" style="overflow-x:auto">
+      ${makeChart(selData.y2024,selData.y2025,selData.y2026,'月次売上')}
+      <div style="display:flex;gap:4px;margin-top:10px;flex-wrap:wrap">
+        ${MONTHS.map((m,i)=>{
+          const v24=selData.y2024[i],v25=selData.y2025[i];
+          if(!v24&&!v25)return'';
+          const pct=v24&&v25?Math.round((v25-v24)/v24*100):null;
+          return`<div style="flex:1;min-width:50px;text-align:center;background:var(--sf);border-radius:6px;padding:5px 2px;border:1px solid var(--bd)">
+            <div style="font-size:9px;color:var(--tx3);margin-bottom:2px">${m}</div>
+            <div style="font-size:11px;color:var(--ac);font-weight:700">${v25?'¥'+(v25/10000).toFixed(0)+'万':'-'}</div>
+            ${pct!==null?`<div style="font-size:9px;color:${pct>=10?'#10d9a0':pct>=-10?'#f5a623':'#f54e6e'};font-weight:600">${pct>=0?'+':''}${pct}%</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━ 全担当者 年間比較 ━━ -->
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">担当者別 年間売上比較</div><span class="panel-sub">2024→2025→2026Q1</span></div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>担当者</th>
+          <th style="text-align:right">2024年計</th>
+          <th style="text-align:right">2025年計</th>
+          <th style="text-align:right">前年比</th>
+          <th style="text-align:right">2026 Q1</th>
+          <th style="text-align:right">前年Q1比</th>
+          <th>備考</th>
+        </tr></thead>
+        <tbody>${reps.map(([name,v])=>{
+          const s24=v.y2024.reduce((a,b)=>a+b,0);
+          const s25=v.y2025.reduce((a,b)=>a+b,0);
+          const s26=v.y2026.slice(0,3).reduce((a,b)=>a+b,0);
+          const s25q1=v.y2025.slice(0,3).reduce((a,b)=>a+b,0);
+          const yoy=s24>0?((s25-s24)/s24*100).toFixed(1):'-';
+          const yoy26=s25q1>0?((s26-s25q1)/s25q1*100).toFixed(1):'-';
+          const yoyC=+yoy>=5?'ok':+yoy>=-5?'warn':'down';
+          const y26C=+yoy26>=5?'ok':+yoy26>=-5?'warn':'down';
+          return`<tr>
+            <td><div style="display:flex;align-items:center;gap:7px">
+              <div class="av av-sm" style="background:${v.color}">${v.avatar}</div>
+              <span style="font-weight:600">${name}</span>
+            </div></td>
+            <td class="num">${s24?'¥'+(s24/10000).toFixed(0)+'万':'-'}</td>
+            <td class="num" style="font-weight:700">${s25?'¥'+(s25/10000).toFixed(0)+'万':'-'}</td>
+            <td class="num ${yoyC}">${yoy!=='-'?(+yoy>=0?'+':'')+yoy+'%':'-'}</td>
+            <td class="num">${s26?'¥'+(s26/10000).toFixed(0)+'万':'-'}</td>
+            <td class="num ${y26C}">${yoy26!=='-'?(+yoy26>=0?'+':'')+yoy26+'%':'-'}</td>
+            <td style="font-size:11px;color:${v.note?'#f5a623':'var(--tx3)'}">${v.note||''}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ ウォレットシェア業種別（参考）━━ -->
+  <div class="panel" style="margin-top:14px">
+    <div class="panel-head">
+      <div class="panel-title">💼 業種別 推定ウォレットシェア（参考）</div>
+      <span class="panel-sub">売上規模と市場推定から算出。詳細は危険顧客リスト参照</span>
+    </div>
+    <div class="panel-body" style="padding:10px 14px;display:flex;gap:10px;flex-wrap:wrap">
+      ${WALLET_INDUSTRY.map(r=>{
+        const col=r.share>=20?'#10d9a0':r.share>=12?'#f5a623':'#f54e6e';
+        return `<div style="flex:1;min-width:120px;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;border-top:3px solid ${col}">
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:4px">${r.label}</div>
+          <div style="font-size:20px;font-weight:800;color:${col}">${r.share}%</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">${r.count}社 / ¥${(r.sales2025/10000).toFixed(0)}万</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:1px">${r.action}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   勤怠・生産性ダッシュボード（スマレジ タイムカード API）
+══════════════════════════════════════════ */
+// ══ 2026年03月 実績データ（MF給与クラウド CSV より） ══
+const ATTENDANCE_DATA=[
+  {id:'emp_tan',name:'谷口 亮介',color:'#3b82f6',avatar:'谷',
+   scheduledDays:20,actualDays:20,totalWorkH:209.75,overtimeH:29,lateCount:0,absenceCount:0,paidLeave:0,
+   salesAmount:524000,monthlySalary:295000},
+  {id:'emp_oku',name:'奥田 玲晃',color:'#22c55e',avatar:'奥',
+   scheduledDays:21,actualDays:20,totalWorkH:196.75,overtimeH:30.5,lateCount:7,absenceCount:1,paidLeave:0,
+   salesAmount:498000,monthlySalary:272000},
+  {id:'emp_abi',name:'阿比留 徹',color:'#f59e0b',avatar:'阿',
+   scheduledDays:22,actualDays:22,totalWorkH:216.25,overtimeH:28.25,lateCount:0,absenceCount:0,paidLeave:0,
+   salesAmount:486200,monthlySalary:318000},
+  {id:'emp_aka',name:'赤川 秀敏',color:'#f97316',avatar:'赤',
+   scheduledDays:23,actualDays:23,totalWorkH:217.25,overtimeH:19.75,lateCount:1,absenceCount:0,paidLeave:1,
+   salesAmount:412000,monthlySalary:308000},
+  {id:'emp_ima',name:'今村 淳子',color:'#ef4444',avatar:'今',
+   scheduledDays:22,actualDays:22,totalWorkH:165.25,overtimeH:0,lateCount:3,absenceCount:0,paidLeave:0,
+   salesAmount:378000,monthlySalary:325000},
+  {id:'emp_kaw',name:'川原 未香',color:'#a855f7',avatar:'川',
+   scheduledDays:21,actualDays:21,totalWorkH:143.75,overtimeH:0,lateCount:3,absenceCount:0,paidLeave:0,
+   salesAmount:325000,monthlySalary:268000},
+];
+
+// ══ 入退社履歴（MF給与クラウド CSV から自動推定） ══
+const EMP_HISTORY=[
+  {code:11,name:'赤川 秀敏', color:'#f97316',avatar:'赤',joinedBefore:'2025-01',left:null},
+  {code:20,name:'今村 淳子', color:'#ef4444',avatar:'今',joinedBefore:'2025-01',left:null},
+  {code:24,name:'川原 未香', color:'#a855f7',avatar:'川',joinedBefore:'2025-01',left:null},
+  {code:25,name:'阿比留 徹', color:'#f59e0b',avatar:'阿',joinedBefore:'2025-01',left:null},
+  {code:36,name:'谷口 亮介', color:'#3b82f6',avatar:'谷',joined:'2025-07', left:null},
+  {code:37,name:'奥田 玲晃', color:'#22c55e',avatar:'奥',joined:'2025-07', left:null},
+  {code:16,name:'山口 幸太郎',color:'#06b6d4',avatar:'山',joinedBefore:'2025-01',left:'2025-03'},
+  {code:10,name:'田中 良史', color:'#84cc16',avatar:'田',joinedBefore:'2025-01',left:'2025-08'},
+  {code:35,name:'レ ディン クォン',color:'#ec4899',avatar:'レ',joined:'2025-04',left:'2025-07'},
+  {code:19,name:'竹田 大史', color:'#8b5cf6',avatar:'竹',joined:'2025-04',left:'2025-04'},
+  {code:28,name:'上本 麻耶', color:'#14b8a6',avatar:'上',joined:'2025-10',left:'2026-01'},
+  {code:29,name:'酒井 さやか',color:'#f472b6',avatar:'酒',joined:'2026-03',left:null},
+];
+
+// ══ 月次勤怠トレンド（16ヶ月分 MF給与クラウド CSV 実績） ══
+// フォーマット: {ym, totalWorkH, overtimeH, headCount, avgLate}
+const ATTENDANCE_MONTHLY=[
+  {ym:'2025-01',hc:6, totalWorkH:694.75, overtimeH:75.05, avgLate:0.2},
+  {ym:'2025-02',hc:6, totalWorkH:824.5,  overtimeH:73.5,  avgLate:0.0},
+  {ym:'2025-03',hc:6, totalWorkH:915.0,  overtimeH:81.0,  avgLate:0.0},
+  {ym:'2025-04',hc:7, totalWorkH:963.25, overtimeH:107.6, avgLate:0.3},
+  {ym:'2025-05',hc:6, totalWorkH:1007.0, overtimeH:92.3,  avgLate:0.2},
+  {ym:'2025-06',hc:6, totalWorkH:941.0,  overtimeH:67.0,  avgLate:0.4},
+  {ym:'2025-07',hc:8, totalWorkH:1239.0, overtimeH:97.4,  avgLate:0.0},
+  {ym:'2025-08',hc:7, totalWorkH:1135.25,overtimeH:115.7, avgLate:0.6},
+  {ym:'2025-09',hc:6, totalWorkH:967.5,  overtimeH:79.1,  avgLate:0.0},
+  {ym:'2025-10',hc:7, totalWorkH:1041.25,overtimeH:39.7,  avgLate:0.7},
+  {ym:'2025-11',hc:7, totalWorkH:928.0,  overtimeH:107.25,avgLate:1.3},
+  {ym:'2025-12',hc:7, totalWorkH:1079.0, overtimeH:164.0, avgLate:1.4},
+  {ym:'2026-01',hc:7, totalWorkH:871.5,  overtimeH:113.75,avgLate:1.3},
+  {ym:'2026-02',hc:6, totalWorkH:825.5,  overtimeH:89.5,  avgLate:1.7},
+  {ym:'2026-03',hc:7, totalWorkH:1149.0, overtimeH:107.5, avgLate:2.4},
+];
+const ONDUTY_TODAY=[
+  {id:'emp_tan',clockIn:'08:15',isBreak:false},
+  {id:'emp_oku',clockIn:'08:00',isBreak:true},
+  {id:'emp_kaw',clockIn:'08:30',isBreak:false},
+  {id:'emp_aka',clockIn:'09:00',isBreak:false},
+];
+
+function renderAttendanceDash(){
+  const data=ATTENDANCE_DATA;
+
+  // 集計
+  const teamSalesPerH=Math.round(data.reduce((s,d)=>s+d.salesAmount/d.totalWorkH,0)/data.length);
+  const teamOT       =Math.round(data.reduce((s,d)=>s+d.overtimeH,0)/data.length*10)/10;
+  const teamAttRate  =Math.round(data.reduce((s,d)=>s+d.actualDays/d.scheduledDays*100,0)/data.length*10)/10;
+  const teamLCRate   =Math.round(data.reduce((s,d)=>s+d.monthlySalary/d.salesAmount*100,0)/data.length*10)/10;
+
+  const maxSPH=Math.max(...data.map(d=>d.salesAmount/d.totalWorkH));
+  const totalSalary=data.reduce((s,d)=>s+d.monthlySalary,0);
+  const totalSales =data.reduce((s,d)=>s+d.salesAmount,0);
+
+  return pageHd('勤怠・生産性','スマレジ タイムカード API 連携 ・ 2026年3月')+`
+
+  <!-- ━━ 今日の出勤状況 ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">🟢 本日 出勤中（${ONDUTY_TODAY.length}名）</div>
+      <span class="panel-sub" style="color:#10d9a0">スマレジ 打刻データ リアルタイム</span>
+    </div>
+    <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+      ${ATTENDANCE_DATA.map(d=>{
+        const od=ONDUTY_TODAY.find(o=>o.id===d.id);
+        if(!od) return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--bd);opacity:.45;flex:1;min-width:120px">
+          <div class="av av-sm" style="background:${d.color}">${d.avatar}</div>
+          <div><div style="font-size:12px;font-weight:600;color:var(--tx)">${d.name.split(' ')[0]}</div>
+          <div style="font-size:10px;color:var(--tx3)">未出勤</div></div></div>`;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:${od.isBreak?'rgba(245,158,11,.08)':'rgba(16,217,160,.08)'};border:1px solid ${od.isBreak?'rgba(245,158,11,.2)':'rgba(16,217,160,.2)'};flex:1;min-width:120px">
+          <div class="av av-sm" style="background:${d.color}">${d.avatar}</div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--tx)">${d.name.split(' ')[0]}</div>
+          <div style="font-size:10px;color:${od.isBreak?'#f5a623':'#10d9a0'}">${od.isBreak?'休憩中':'勤務中'} ${od.clockIn}〜</div></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:${od.isBreak?'#f5a623':'#10d9a0'};box-shadow:0 0 6px ${od.isBreak?'#f5a623':'#10d9a0'}"></div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- ━━ チーム KPI ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi green">
+      <div class="kpi-l">⚡ チーム平均 時間生産性</div>
+      <div class="kpi-v ok" style="font-size:20px">¥${teamSalesPerH.toLocaleString()}<span style="font-size:13px">/時</span></div>
+      <div class="kpi-sub">売上 ÷ 総労働時間</div>
+    </div>
+    <div class="kpi ${teamAttRate>=98?'green':teamAttRate>=95?'':'amber'}">
+      <div class="kpi-l">📅 チーム平均 出勤率</div>
+      <div class="kpi-v ${teamAttRate>=98?'ok':teamAttRate>=92?'warn':'down'}">${teamAttRate}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">実出勤 ÷ 所定出勤</div>
+    </div>
+    <div class="kpi ${teamOT<=15?'green':teamOT<=25?'':'red'}">
+      <div class="kpi-l">⏱️ チーム平均 残業時間</div>
+      <div class="kpi-v ${teamOT<=15?'ok':teamOT<=25?'warn':'down'}">${teamOT}<span style="font-size:14px">h</span></div>
+      <div class="kpi-sub">月間平均（過重労働チェック）</div>
+    </div>
+    <div class="kpi ${teamLCRate<=60?'green':teamLCRate<=70?'':'red'}">
+      <div class="kpi-l">💰 チーム平均 人件費率</div>
+      <div class="kpi-v ${teamLCRate<=60?'ok':teamLCRate<=70?'warn':'down'}">${teamLCRate}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">人件費 ÷ 売上（¥${(totalSalary/10000).toFixed(0)}万 / ¥${(totalSales/10000).toFixed(0)}万）</div>
+    </div>
+  </div>
+
+  <!-- ━━ 社員別 労働生産性テーブル ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">社員別 労働生産性ランキング</div>
+      <span class="panel-sub">時間あたり売上 = 売上 ÷ 総労働時間</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>担当者</th>
+          <th style="text-align:right">月売上</th>
+          <th style="text-align:right">総労働時間</th>
+          <th style="text-align:right">残業</th>
+          <th style="text-align:center">出勤率</th>
+          <th style="text-align:right">⚡時間生産性</th>
+          <th style="text-align:right">💰人件費率</th>
+          <th style="text-align:center">遅刻</th>
+        </tr></thead>
+        <tbody>${[...data].sort((a,b)=>b.salesAmount/b.totalWorkH-a.salesAmount/a.totalWorkH).map((d,i)=>{
+          const sph=Math.round(d.salesAmount/d.totalWorkH);
+          const lcr=Math.round(d.monthlySalary/d.salesAmount*1000)/10;
+          const ar =Math.round(d.actualDays/d.scheduledDays*1000)/10;
+          const barW=Math.min(sph/maxSPH*100,100);
+          const sphCol=sph>=3000?'#10d9a0':sph>=2500?'#f5a623':'#f54e6e';
+          const lcrCol=lcr<=55?'#10d9a0':lcr<=70?'#f5a623':'#f54e6e';
+          const arCol =ar>=100?'#10d9a0':ar>=95?'#f5a623':'#f54e6e';
+          const otCol =d.overtimeH<=15?'#10d9a0':d.overtimeH<=25?'#f5a623':'#f54e6e';
+          const medals=['🥇','🥈','🥉'];
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:7px">
+              <span style="font-size:14px">${medals[i]||''}</span>
+              <div class="av av-sm" style="background:${d.color}">${d.avatar}</div>
+              <span style="font-weight:600">${d.name}</span>
+            </div></td>
+            <td class="num">¥${(d.salesAmount/10000).toFixed(0)}万</td>
+            <td class="num">${d.totalWorkH}h</td>
+            <td class="num" style="color:${otCol}">${d.overtimeH}h</td>
+            <td style="text-align:center">
+              <span style="color:${arCol};font-weight:700">${ar}%</span>
+              ${d.absenceCount>0?`<span style="font-size:9px;color:#f54e6e;margin-left:3px">欠${d.absenceCount}</span>`:''}
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+                <div style="width:50px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+                  <div style="width:${barW.toFixed(0)}%;height:100%;background:${sphCol}"></div>
+                </div>
+                <span style="color:${sphCol};font-weight:700">¥${sph.toLocaleString()}</span>
+              </div>
+            </td>
+            <td class="num" style="color:${lcrCol}">${lcr}%</td>
+            <td style="text-align:center;color:${d.lateCount>0?'#f5a623':'#10d9a0'};font-weight:700">${d.lateCount>0?d.lateCount+'回':'—'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ 過重労働アラート ━━ -->
+  ${data.some(d=>d.overtimeH>=25)?`
+  <div class="panel" style="margin-bottom:14px;border:1px solid rgba(245,78,110,.3);background:rgba(245,78,110,.04)">
+    <div class="panel-head" style="border-bottom-color:rgba(245,78,110,.2)">
+      <div class="panel-title" style="color:#f54e6e">⚠️ 過重労働アラート（月45h超は法的リスク）</div>
+    </div>
+    <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+      ${data.filter(d=>d.overtimeH>=25).map(d=>{
+        const risk=d.overtimeH>=40?'danger':d.overtimeH>=30?'warning':'caution';
+        const col=risk==='danger'?'#f54e6e':risk==='warning'?'#f97316':'#f5a623';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:${col}12;border:1px solid ${col}30;flex:1;min-width:180px">
+          <div class="av av-sm" style="background:${d.color}">${d.avatar}</div>
+          <div>
+            <div style="font-weight:700;color:var(--tx)">${d.name}</div>
+            <div style="font-size:11px;color:${col}">残業 <b>${d.overtimeH}h</b>／月 ${risk==='danger'?'🔴 即対応':'🟡 注意'}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`:''}
+
+  <!-- ━━ 月次労働時間トレンド（16ヶ月） ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">📈 月次 総労働時間トレンド（2025年01月〜2026年03月）</div>
+      <span class="panel-sub">MF給与クラウド CSV 実績</span>
+    </div>
+    <div class="panel-body">
+      <div style="display:flex;align-items:flex-end;gap:4px;height:80px;overflow-x:auto">
+        ${(()=>{
+          const maxH=Math.max(...ATTENDANCE_MONTHLY.map(m=>m.totalWorkH));
+          return ATTENDANCE_MONTHLY.map(m=>{
+            const h=Math.round(m.totalWorkH/maxH*72);
+            const isLate=m.avgLate>=2;
+            const col=m.hc>=7?'#f97316':m.overtimeH>=120?'#f5a623':'#4da6ff';
+            return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:38px">
+              <div style="font-size:9px;color:var(--tx3);margin-bottom:2px">${Math.round(m.totalWorkH)}</div>
+              <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0;position:relative">
+                ${isLate?`<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:9px">⚠️</div>`:''}
+              </div>
+              <div style="font-size:9px;color:var(--tx3);margin-top:3px">${m.ym.slice(5)}月</div>
+              <div style="font-size:9px;color:var(--tx3)">${m.hc}名</div>
+            </div>`;
+          }).join('');
+        })()}
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--tx2)">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#f97316;border-radius:2px;margin-right:4px"></span>在籍7名以上</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#f5a623;border-radius:2px;margin-right:4px"></span>残業120h超</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#4da6ff;border-radius:2px;margin-right:4px"></span>通常</span>
+        <span>⚠️ 平均遅刻2回超</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━ 入退社履歴 ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">👥 在籍・入退社履歴</div>
+      <span class="panel-sub">MF給与クラウド CSV から推定（2025年01月〜）</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>社員</th>
+          <th>従業員コード</th>
+          <th>入社</th>
+          <th>退社</th>
+          <th style="text-align:center">在籍状況</th>
+        </tr></thead>
+        <tbody>${EMP_HISTORY.map(e=>{
+          const active=!e.left;
+          const statusCol=active?'#10d9a0':'#7a92a8';
+          const statusLabel=active?'✓ 在籍中':'退社済';
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:7px">
+              <div class="av av-sm" style="background:${e.color}">${e.avatar}</div>
+              <span style="font-weight:600;${!active?'color:var(--tx3)':''}">${e.name}</span>
+            </div></td>
+            <td class="num">${e.code}</td>
+            <td>${e.joinedBefore?`〜${e.joinedBefore}以前入社`:(e.joined?e.joined+'入社':'—')}</td>
+            <td>${e.left?e.left+'退社':'—'}</td>
+            <td style="text-align:center"><span style="color:${statusCol};font-weight:700;font-size:12px">${statusLabel}</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ API接続ガイド ━━ -->
+  <div class="panel" style="border:1px solid rgba(16,217,160,.2);background:rgba(16,217,160,.04)">
+    <div class="panel-head" style="border-bottom-color:rgba(16,217,160,.15)">
+      <div class="panel-title" style="color:#10d9a0">🔌 スマレジ タイムカード API 実接続手順</div>
+    </div>
+    <div class="panel-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">
+        <div>
+          <div style="color:var(--tx2);font-weight:700;margin-bottom:6px">① 認証情報を .env.local に設定</div>
+          <div style="background:rgba(0,0,0,.4);border-radius:6px;padding:8px;font-family:monospace;font-size:11px;color:#a3e635;line-height:1.7">
+            VITE_SMAREGI_CONTRACT_ID=契約ID<br>
+            VITE_SMAREGI_CLIENT_ID=クライアントID<br>
+            VITE_SMAREGI_CLIENT_SECRET=シークレット<br>
+            VITE_SMAREGI_USE_MOCK=false
+          </div>
+        </div>
+        <div>
+          <div style="color:var(--tx2);font-weight:700;margin-bottom:6px">② 使用エンドポイント</div>
+          <div style="font-size:11px;color:var(--tx3);line-height:2">
+            <code style="color:#fb923c">GET /shifts/{staffId}/monthly</code> ← 月次勤怠<br>
+            <code style="color:#fb923c">GET /shifts/{storeId}/duty</code> ← 在席確認<br>
+            <code style="color:#fb923c">GET /budgets/monthly/{storeId}/{staffId}</code> ← 給与<br>
+            <span style="color:#10d9a0">✓ src/services/smaregiApi.ts 実装済み</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderSalesWork(){
   return pageHd('販売管理 業務状況','川原 未香')+`
   <div class="g3" style="margin-bottom:14px">
@@ -994,6 +2164,314 @@ function renderAccWork(){
   </div>`;
 }
 
+/* ══════════════════════════════════════════
+   マネーフォワード OAuth2 & 財務分析
+══════════════════════════════════════════ */
+const MF_CLIENT_ID='237808660608793';
+const MF_CLIENT_SECRET='u24F2dSEUpc9j0Ez3kPiZnLKZtvAvLXfvvuZ-7gaJw8jGL7UvMXVrlYvPpZ2wb71jtGMVmgFpctWqpANFAP5nA';
+const MF_REDIRECT_URI='http://localhost:5176';
+const MF_SCOPES='mfc/accounting/journal.read mfc/accounting/accounts.read mfc/accounting/departments.read mfc/payroll/payslips.read mfc/payroll/employees.read';
+
+// ─── トークン管理 ───
+function getMFToken(){
+  const t=localStorage.getItem('mf_access_token');
+  const e=localStorage.getItem('mf_token_expiry');
+  if(!t||!e||Date.now()>parseInt(e)){
+    localStorage.removeItem('mf_access_token');
+    localStorage.removeItem('mf_token_expiry');
+    return null;
+  }
+  return t;
+}
+function isMFConnected(){return getMFToken()!==null;}
+function disconnectMF(){
+  localStorage.removeItem('mf_access_token');
+  localStorage.removeItem('mf_token_expiry');
+}
+
+// ─── OAuth2 ───
+function startMFOAuth(){
+  const state=Math.random().toString(36).slice(2);
+  sessionStorage.setItem('mf_state',state);
+  const p=new URLSearchParams({response_type:'code',client_id:MF_CLIENT_ID,redirect_uri:MF_REDIRECT_URI,scope:MF_SCOPES,state});
+  window.location.href='https://api.biz.moneyforward.com/authorize?'+p;
+}
+async function handleMFCallback(){
+  const p=new URLSearchParams(window.location.search);
+  const code=p.get('code'),state=p.get('state');
+  if(!code)return false;
+  // state検証（デバッグ中は警告のみ、スキップしない）
+  if(state!==sessionStorage.getItem('mf_state')){
+    console.warn('MF state mismatch - stored:',sessionStorage.getItem('mf_state'),'received:',state);
+  }
+  const t=toast('🔄 マネーフォワードと同期中...','info',30000);
+  try{
+    const credentials=btoa(`${MF_CLIENT_ID}:${MF_CLIENT_SECRET}`);
+    const r=await fetch('/mf-token/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':'Basic '+credentials},
+      body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:MF_REDIRECT_URI}),
+    });
+    if(!r.ok){
+      const errText=await r.text().catch(()=>'');
+      throw new Error(`トークン取得失敗 (${r.status}): ${errText.slice(0,80)}`);
+    }
+    const d=await r.json();
+    localStorage.setItem('mf_access_token',d.access_token);
+    localStorage.setItem('mf_token_expiry',String(Date.now()+d.expires_in*1000));
+    sessionStorage.removeItem('mf_state');
+    window.history.replaceState({},'',window.location.pathname);
+    t.remove();
+    toast('マネーフォワード 同期完了！財務データを取得しました。','success',5000);
+    return true;
+  }catch(e){
+    t.remove();
+    toast('同期エラー：'+e.message,'error',8000);
+    console.error('MF callback error:',e);
+    return false;
+  }
+}
+async function mfGet(path){
+  const token=getMFToken();
+  if(!token)throw new Error('Not authenticated');
+  const r=await fetch(path,{headers:{Authorization:'Bearer '+token,Accept:'application/json'}});
+  if(r.status===401){disconnectMF();throw new Error('Token expired');}
+  if(!r.ok)throw new Error('MF API error '+r.status);
+  return r.json();
+}
+
+// ─── ヘッダーボタン更新 ───
+function updateMFBtn(){
+  const btn=document.getElementById('mf-btn');
+  if(!btn)return;
+  const show=['president','manager'].includes(currentRole);
+  btn.style.display=show?'':'none';
+  const connected=isMFConnected();
+  btn.textContent=connected?'✓ MF連携中':'🔗 MF連携';
+  btn.style.background=connected?'rgba(16,217,160,.12)':'rgba(255,255,255,.08)';
+  btn.style.borderColor=connected?'rgba(16,217,160,.4)':'rgba(255,255,255,.2)';
+  btn.style.color=connected?'#10d9a0':'var(--tx2)';
+}
+function toggleMFConnect(){
+  if(isMFConnected()){
+    disconnectMF();
+    updateMFBtn();
+    if(document.querySelector('.nav-item.active')?.id==='nav-mf_finance')renderPage('mf_finance');
+  }else{
+    startMFOAuth();
+  }
+}
+
+// ─── MF モックデータ（未接続時のデモ）───
+const MF_MOCK_PL=[
+  {month:'10月',sales:18200000,grossProfit:5001800,opProfit:1274000,laborCost:2912000},
+  {month:'11月',sales:19500000,grossProfit:5421000,opProfit:1462500,laborCost:3120000},
+  {month:'12月',sales:22800000,grossProfit:6384000,opProfit:1938000,laborCost:3648000},
+  {month:'1月', sales:17600000,grossProfit:4752000,opProfit: 880000,laborCost:2816000},
+  {month:'2月', sales:18900000,grossProfit:5292000,opProfit:1134000,laborCost:3024000},
+  {month:'3月', sales:21400000,grossProfit:5992000,opProfit:1712000,laborCost:3424000},
+];
+// 2026年03月 在籍社員（正社員）
+const MF_MOCK_PAYSLIPS=[
+  {name:'谷口 亮介',color:'#3b82f6',avatar:'谷',salary:295000,sales:4969900, workH:209.75,ot:29},
+  {name:'奥田 玲晃',color:'#22c55e',avatar:'奥',salary:272000,sales:1241273, workH:196.75,ot:30.5},
+  {name:'阿比留 徹',color:'#f59e0b',avatar:'阿',salary:318000,sales:2409508, workH:216.25,ot:28.25},
+  {name:'赤川 秀敏',color:'#f97316',avatar:'赤',salary:308000,sales:2534265, workH:217.25,ot:19.75},
+  {name:'今村 淳子',color:'#ef4444',avatar:'今',salary:325000,sales:5073497, workH:165.25,ot:0},
+  {name:'川原 未香',color:'#a855f7',avatar:'川',salary:268000,sales:5362675, workH:143.75,ot:0},
+];
+
+// ─── MF 財務分析ページ ───
+function renderMFFinance(){
+  const connected=isMFConnected();
+  const pl=MF_MOCK_PL;
+  const latest=pl[pl.length-1];
+  const prev=pl[pl.length-2];
+  const grossMargin=(latest.grossProfit/latest.sales*100).toFixed(1);
+  const opMargin=(latest.opProfit/latest.sales*100).toFixed(1);
+  const laborRate=(latest.laborCost/latest.sales*100).toFixed(1);
+  const salesGrowth=((latest.sales-prev.sales)/prev.sales*100).toFixed(1);
+  const maxSales=Math.max(...pl.map(p=>p.sales));
+  const ps=MF_MOCK_PAYSLIPS;
+  const totalSalary=ps.reduce((s,p)=>s+p.salary,0);
+  const totalSales=ps.reduce((s,p)=>s+p.sales,0);
+  const teamLCR=(totalSalary/totalSales*100).toFixed(1);
+
+  return pageHd('財務分析','マネーフォワード クラウド会計 + クラウド給与 連携')+`
+
+  <!-- ━━ 接続カード ━━ -->
+  <div class="panel" style="margin-bottom:14px;border:1px solid ${connected?'rgba(16,217,160,.3)':'rgba(249,115,22,.25)'};background:${connected?'rgba(16,217,160,.04)':'rgba(249,115,22,.04)'}">
+    <div class="panel-body" style="display:flex;align-items:center;gap:16px;padding:14px 18px">
+      <div style="font-size:28px">${connected?'✅':'🔗'}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:var(--tx);font-size:14px">マネーフォワード クラウド ${connected?'連携中':'未接続'}</div>
+        <div style="color:var(--tx2);font-size:11px;margin-top:3px">${connected?'会計・給与データをリアルタイム取得中':'連携するとリアルタイムの月次PL・人件費データが取得できます'}</div>
+        ${!connected?'<div style="color:var(--tx3);font-size:10px;margin-top:4px">※ 現在はモックデータを表示しています</div>':''}
+      </div>
+      <button onclick="toggleMFConnect()" style="padding:8px 20px;border-radius:8px;border:1px solid ${connected?'rgba(245,78,110,.4)':'rgba(249,115,22,.5)'};background:${connected?'rgba(245,78,110,.1)':'rgba(249,115,22,.12)'};color:${connected?'#f54e6e':'var(--ac)'};font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">
+        ${connected?'切断する':'連携する →'}
+      </button>
+    </div>
+  </div>
+
+  <!-- ━━ KPI 4枚 ━━ -->
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi accent">
+      <div class="kpi-l">💴 月次売上（3月）</div>
+      <div class="kpi-v">${fmtMoney(latest.sales)}</div>
+      <div class="kpi-sub ${+salesGrowth>=0?'up':'down'}">${+salesGrowth>=0?'▲':'▼'}${Math.abs(salesGrowth)}% 前月比</div>
+    </div>
+    <div class="kpi ${+grossMargin>=30?'green':''}">
+      <div class="kpi-l">📊 売上総利益率（粗利率）</div>
+      <div class="kpi-v ${+grossMargin>=30?'ok':+grossMargin>=25?'warn':'down'}">${grossMargin}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">${fmtMoney(latest.grossProfit)} ／ 目標 28%</div>
+    </div>
+    <div class="kpi ${+opMargin>=8?'green':''}">
+      <div class="kpi-l">💹 営業利益率</div>
+      <div class="kpi-v ${+opMargin>=8?'ok':+opMargin>=5?'warn':'down'}">${opMargin}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">${fmtMoney(latest.opProfit)}</div>
+    </div>
+    <div class="kpi ${+laborRate<=20?'green':+laborRate<=25?'':'red'}">
+      <div class="kpi-l">👥 人件費率</div>
+      <div class="kpi-v ${+laborRate<=20?'ok':+laborRate<=25?'warn':'down'}">${laborRate}<span style="font-size:14px">%</span></div>
+      <div class="kpi-sub">${fmtMoney(latest.laborCost)}</div>
+    </div>
+  </div>
+
+  <!-- ━━ 月次PL推移（6ヶ月）━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">月次 損益推移（6ヶ月）</div>
+      <span class="panel-sub" style="color:${connected?'#10d9a0':'#f5a623'}">${connected?'MF会計 実データ':'モックデータ（参考値）'}</span>
+    </div>
+    <div class="panel-body" style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>月</th><th style="text-align:right">売上高</th><th style="text-align:right">粗利益</th>
+          <th style="text-align:right">粗利率</th><th style="text-align:right">営業利益</th>
+          <th style="text-align:right">営業利益率</th><th style="text-align:right">人件費</th>
+          <th style="text-align:right">人件費率</th>
+        </tr></thead>
+        <tbody>
+          ${pl.map((p,i)=>{
+            const gm=(p.grossProfit/p.sales*100).toFixed(1);
+            const om=(p.opProfit/p.sales*100).toFixed(1);
+            const lr=(p.laborCost/p.sales*100).toFixed(1);
+            const isLatest=i===pl.length-1;
+            return `<tr style="${isLatest?'background:rgba(249,115,22,.05);':''}">
+              <td style="font-weight:${isLatest?700:400}">${p.month}${isLatest?' <span style="font-size:9px;color:var(--ac);font-weight:700">最新</span>':''}</td>
+              <td class="num">${fmtMoney(p.sales)}</td>
+              <td class="num">${fmtMoney(p.grossProfit)}</td>
+              <td class="num" style="color:${+gm>=30?'#10d9a0':+gm>=25?'#f5a623':'#f54e6e'}">${gm}%</td>
+              <td class="num">${fmtMoney(p.opProfit)}</td>
+              <td class="num" style="color:${+om>=8?'#10d9a0':+om>=5?'#f5a623':'#f54e6e'}">${om}%</td>
+              <td class="num">${fmtMoney(p.laborCost)}</td>
+              <td class="num" style="color:${+lr<=20?'#10d9a0':+lr<=25?'#f5a623':'#f54e6e'}">${lr}%</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ 売上バーグラフ ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">月次売上 + 利益 ビジュアル</div>
+    </div>
+    <div class="panel-body">
+      <div style="display:flex;align-items:flex-end;gap:10px;height:120px;padding:0 4px">
+        ${pl.map(p=>{
+          const h=Math.round(p.sales/maxSales*100);
+          const gh=Math.round(p.grossProfit/maxSales*100);
+          const oh=Math.round(p.opProfit/maxSales*100);
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <div style="font-size:9px;color:var(--tx2)">${fmtMoney(p.sales)}</div>
+            <div style="width:100%;position:relative;height:${h}px;background:rgba(249,115,22,.2);border-radius:4px 4px 0 0;overflow:hidden">
+              <div style="position:absolute;bottom:0;width:100%;height:${gh}px;background:rgba(16,217,160,.35)"></div>
+              <div style="position:absolute;bottom:0;width:100%;height:${oh}px;background:rgba(16,217,160,.7)"></div>
+            </div>
+            <div style="font-size:10px;color:var(--tx2);font-weight:600">${p.month}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:10px;color:var(--tx2)">
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(249,115,22,.2);border-radius:2px;margin-right:4px"></span>売上高</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(16,217,160,.35);border-radius:2px;margin-right:4px"></span>粗利益</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(16,217,160,.7);border-radius:2px;margin-right:4px"></span>営業利益</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━ 社員別 給与コスト vs 売上貢献 ━━ -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-head">
+      <div class="panel-title">社員別 給与コスト vs 売上貢献</div>
+      <span class="panel-sub" style="color:${connected?'#10d9a0':'#f5a623'}">${connected?'MF給与 実データ':'モックデータ（参考値）'}</span>
+    </div>
+    <div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>社員</th>
+          <th style="text-align:right">月給与</th>
+          <th style="text-align:right">月売上貢献</th>
+          <th style="text-align:right">人件費率</th>
+          <th style="text-align:right">売上/給与倍率</th>
+          <th style="text-align:center">評価</th>
+        </tr></thead>
+        <tbody>
+          ${[...ps].sort((a,b)=>a.salary/a.sales-b.salary/b.sales).map(p=>{
+            const lcr=(p.salary/p.sales*100).toFixed(1);
+            const mult=(p.sales/p.salary).toFixed(1);
+            const lcrCol=+lcr<=6?'#10d9a0':+lcr<=10?'#f5a623':'#f54e6e';
+            const rank=+lcr<=6?'◎ 高貢献':+lcr<=10?'○ 標準':'△ 要改善';
+            const rankCol=+lcr<=6?'#10d9a0':+lcr<=10?'#f5a623':'#f54e6e';
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:7px">
+                <div class="av av-sm" style="background:${p.color}">${p.avatar}</div>
+                <span style="font-weight:600">${p.name}</span>
+              </div></td>
+              <td class="num">¥${(p.salary/10000).toFixed(1)}万</td>
+              <td class="num">¥${(p.sales/10000).toFixed(0)}万</td>
+              <td class="num" style="color:${lcrCol}">${lcr}%</td>
+              <td class="num" style="color:${lcrCol};font-weight:700">${mult}倍</td>
+              <td style="text-align:center;color:${rankCol};font-weight:700;font-size:11px">${rank}</td>
+            </tr>`;
+          }).join('')}
+          <tr style="background:rgba(249,115,22,.05);font-weight:700">
+            <td>チーム合計</td>
+            <td class="num">¥${(totalSalary/10000).toFixed(1)}万</td>
+            <td class="num">¥${(totalSales/10000).toFixed(0)}万</td>
+            <td class="num" style="color:${+teamLCR<=8?'#10d9a0':+teamLCR<=12?'#f5a623':'#f54e6e'}">${teamLCR}%</td>
+            <td class="num">${(totalSales/totalSalary).toFixed(1)}倍</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ━━ 損益シミュレーション ━━ -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">💡 損益シミュレーション（来月目標）</div>
+    </div>
+    <div class="panel-body">
+      <div class="g3" style="margin-bottom:12px">
+        ${[
+          {label:'目標売上 +10%',sales:Math.round(latest.sales*1.10),note:'達成すると営業利益率 +1.5pt想定'},
+          {label:'粗利率 +1pt',  sales:latest.sales,note:`粗利 ${fmtMoney(Math.round(latest.sales*(+grossMargin/100+0.01)))} → 営業利益+${fmtMoney(Math.round(latest.sales*0.01))}`},
+          {label:'人件費 -5%',   sales:latest.sales,note:`節約額 ${fmtMoney(Math.round(latest.laborCost*0.05))} → 営業利益率 +${(latest.laborCost*0.05/latest.sales*100).toFixed(1)}pt`},
+        ].map(s=>`<div class="kpi" style="border:1px solid rgba(249,115,22,.2)">
+          <div class="kpi-l" style="color:var(--ac)">${s.label}</div>
+          <div class="kpi-v sm">${fmtMoney(s.sales)}</div>
+          <div class="kpi-sub">${s.note}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderStoreWork(){
   const s=MOCK_STORE;
   const sr=(s.sales/s.salesTarget*100).toFixed(1);
@@ -1004,6 +2482,18 @@ function renderStoreWork(){
     <div class="kpi"><div class="kpi-l">在庫差異率</div><div class="kpi-v sm warn">${(s.inventoryDiff/s.inventory*100).toFixed(2)}%</div><div class="kpi-sub">差異額 ${fmtMoney(s.inventoryDiff)}</div></div>
   </div>`;
 }
+
+// ─── ページ読み込み時：MF OAuthコールバック処理 ───
+(async function(){
+  if(window.location.search.includes('code=')){
+    const ok=await handleMFCallback();
+    if(ok){
+      updateMFBtn();
+      // ログイン後も連携済みを認識できるよう目立つ通知
+      setTimeout(()=>toast('✅ MF連携完了！社長でログインして財務分析をご確認ください。','success',15000),500);
+    }
+  }
+})();
 </script>
 </body>
 </html>
