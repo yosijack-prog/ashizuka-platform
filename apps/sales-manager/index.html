@@ -457,13 +457,50 @@ function calcAxisScores(empId){
     if(att.overtimeH>40) attSc-=Math.round((att.overtimeH-40)/3);
     attSc=Math.max(55,attSc);
   }
-  // 4. 粗利貢献: 現モックデータ（将来的に SQL実績へ移行）
-  const ev=MOCK_EVALS['2026-Q1'].find(e=>e.id===empId);
-  const marginSc=ev?ev.marginScore:90;
-  // 5. 新規開拓: 現モックデータ（将来的に SQL実績へ移行）
-  const newSc=ev?ev.newProductScore:90;
+  // 4. 粗利貢献: SQL実データ（Q1-2026 粗利率 / 目標22% ※業界実績値）
+  // 目標値: チーム平均20.7% → 22%以上で満点・最高27.4%（奥田）
+  // 取得元: T_売上伝票明細.粗利 / T_売上伝票明細.金額 (2026-01〜03)
+  const REAL_MARGIN_RATE={emp_tan:18.4,emp_oku:27.4,emp_abi:21.9,emp_aka:20.2,emp_ima:20.9,emp_kaw:20.8,emp_ash:0,emp_ake:0,emp_sak:21.3};
+  const TARGET_MARGIN=22.0; // Q1-2025 実績最高が23.1% (阿比留) → 22%を100点ラインに設定
+  const myMargin=REAL_MARGIN_RATE[empId]||20.0;
+  const marginSc=myMargin>0?Math.min(130,Math.round(myMargin/TARGET_MARGIN*100)):85;
+  // 5. 新規顧客開拓: SQL実データ（Q1-2026 純新規取引先数）
+  // 取得元: Q1-2026初発注の得意先コード（過去発注履歴なし）
+  // 新任補正: 谷口・奥田（2025年8月着任）は母数が少ないため目標を調整
+  // 既存担当目標: 5社/Q → 100点。新任担当目標: 8社/Q（積極展開期待）
+  const REAL_NEW_CUST={emp_tan:13,emp_oku:17,emp_abi:7,emp_aka:6,emp_ima:7,emp_kaw:9,emp_ash:0,emp_ake:0,emp_sak:1};
+  const NEW_TARGET={emp_tan:8,emp_oku:8,emp_abi:5,emp_aka:5,emp_ima:5,emp_kaw:5,emp_ash:5,emp_ake:3,emp_sak:3};
+  const myNew=REAL_NEW_CUST[empId]||0;
+  const myNewT=NEW_TARGET[empId]||5;
+  const newSc=Math.min(130,Math.round(myNew/myNewT*100));
   return [salesSc,custSc,attSc,marginSc,newSc];
 }
+// 実データ詳細（評価カード内 詳細表示用）
+const REAL_MARGIN_DETAIL={
+  emp_tan:{rate:18.4,sales:13026687,profit:2402441,target:22.0},
+  emp_oku:{rate:27.4,sales:2616779, profit:715949, target:22.0},
+  emp_abi:{rate:21.9,sales:6709272, profit:1468495,target:22.0},
+  emp_aka:{rate:20.2,sales:8516086, profit:1724374,target:22.0},
+  emp_ima:{rate:20.9,sales:18558742,profit:3882814,target:22.0},
+  emp_kaw:{rate:20.8,sales:10629642,profit:2207926,target:22.0},
+  emp_sak:{rate:21.3,sales:276788,  profit:59061,  target:22.0},
+};
+const REAL_RETENTION_DETAIL={
+  emp_tan:{q4:65, q1:43, rate:66.2, note:'田中氏から引継ぎ直後。未転換顧客あり'},
+  emp_oku:{q4:41, q1:36, rate:87.8, note:'新任ながらチームトップの維持率'},
+  emp_abi:{q4:119,q1:94, rate:79.0, note:'安定的な維持'},
+  emp_aka:{q4:162,q1:111,rate:68.5, note:'担当エリア全体を管理'},
+  emp_ima:{q4:238,q1:177,rate:74.4, note:'大口顧客は維持。中小顧客に流出'},
+  emp_kaw:{q4:162,q1:114,rate:70.4, note:'新担当エリア開拓と並行'},
+};
+const REAL_NEWCUST_DETAIL={
+  emp_tan:{count:13,target:8, note:'着任後の積極的な新規開拓'},
+  emp_oku:{count:17,target:8, note:'チームトップ。着任8ヶ月で急速展開'},
+  emp_abi:{count:7, target:5, note:'目標超'},
+  emp_aka:{count:6, target:5, note:'店長業務と並行'},
+  emp_ima:{count:7, target:5, note:'大手含む7社開拓'},
+  emp_kaw:{count:9, target:5, note:'新担当エリアでの新規開拓'},
+};
 function calcWeightedTotal(empId,role){
   const ws=getWeights(role);
   return Math.round(calcAxisScores(empId).reduce((s,sc,i)=>s+sc*(ws[i]/100),0));
@@ -1073,33 +1110,52 @@ function renderStore(){
    ランキング
 ══════════════════════════════════════════ */
 function renderRanking(){
-  const data=MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>b.total-a.total);
+  // 実データ加重スコアでソート
+  const data=MOCK_EVALS['2026-Q1'].slice().sort((a,b)=>calcWeightedTotal(b.id,b.role)-calcWeightedTotal(a.id,a.role));
   const medals=['🥇','🥈','🥉'];
-  return pageHd('スコアランキング','2026-Q1 · クリックで詳細展開')+
+  return pageHd('スコアランキング','2026-Q1 · 実データ連動 · クリックで詳細展開')+
   data.map((e,i)=>{
-    const d=e.total-e.prevScore;
+    const realTotal=calcWeightedTotal(e.id,e.role);
+    const axScores=calcAxisScores(e.id);
+    const ws=getWeights(e.role);
+    const d=realTotal-e.prevScore;
     const ap=approvals[e.id];
+    const ret=REAL_RETENTION_DETAIL[e.id];
+    const mg=REAL_MARGIN_DETAIL[e.id];
+    const nc=REAL_NEWCUST_DETAIL[e.id];
     return `<div class="eval-card" onclick="this.classList.toggle('open')">
       <div class="eval-head">
         <div style="width:34px;height:34px;border-radius:50%;background:${i<3?['#d97706','#64748b','#92400e'][i]:'var(--sf2)'};display:flex;align-items:center;justify-content:center;font-size:${i<3?18:13}px;font-weight:900;color:#fff;flex-shrink:0">${i<3?medals[i]:i+1}</div>
         <div class="av av-md" style="background:${e.color}">${e.avatar}</div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:700;color:var(--tx)">${e.name}
-            <span class="badge ${e.total>=100?'badge-amber':'badge-blue'}" style="margin-left:8px">${bonusLabel(e.total)}</span>
+            <span class="badge ${realTotal>=100?'badge-amber':'badge-blue'}" style="margin-left:8px">${bonusLabel(realTotal)}</span>
             ${ap?.presidentApproved?'<span class="badge badge-green" style="margin-left:6px">✅ 承認済</span>':''}
           </div>
-          <div style="font-size:11px;color:var(--tx2)">${e.role} &nbsp;·&nbsp; 前期比 <span style="color:${d>=0?'#10d9a0':'#f54e6e'};font-weight:700">${d>=0?'+':''}${d}</span></div>
+          <div style="font-size:11px;color:var(--tx2)">${e.role} &nbsp;·&nbsp; 前期比 <span style="color:${d>=0?'#10d9a0':'#f54e6e'};font-weight:700">${d>=0?'+':''}${d}pt</span></div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:34px;font-weight:900;color:${e.total>=100?'#fbbf24':'#10d9a0'};line-height:1;letter-spacing:-.02em">${e.total}</div>
+          <div style="font-size:34px;font-weight:900;color:${realTotal>=100?'#fbbf24':'#10d9a0'};line-height:1;letter-spacing:-.02em">${realTotal}</div>
           <div style="font-size:10px;color:var(--tx2);margin-top:2px">点（100=目標）</div>
         </div>
       </div>
       <div class="eval-body">
-        <div class="g3" style="margin-top:4px">
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.newProductCount}件 / 目標${e.newProductTarget}件</div></div>
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.avgGrossMargin}% / 目標${e.marginTarget}%</div></div>
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.settlementRate}% / 目標${e.settlementTarget}%</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px">
+          ${EVAL_AXES.map((a,idx)=>{
+            const sc=axScores[idx],w=ws[idx];
+            const cl=sc>=100?'ok':sc>=85?'warn':'down';
+            return `<div style="text-align:center;flex:1;min-width:70px;background:var(--bg);border-radius:6px;padding:6px 4px;border:1px solid var(--bd)">
+              <div style="font-size:13px">${a.icon}</div>
+              <div style="font-size:16px;font-weight:800" class="${cl}">${sc}</div>
+              <div style="font-size:9px;color:var(--tx3)">×${w}%</div>
+              <div style="font-size:9px;color:var(--tx2)">${a.label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px;color:var(--tx2)">
+          ${mg?`<div>💴 粗利率: <b style="color:var(--tx)">${mg.rate}%</b> (目標22%) 粗利額 ${fmtMoney(mg.profit)}</div>`:''}
+          ${ret?`<div>🤝 顧客維持: <b style="color:var(--tx)">${ret.rate}%</b> (${ret.q4}→${ret.q1}社) ${ret.note}</div>`:''}
+          ${nc?`<div>🆕 新規開拓: <b style="color:var(--tx)">${nc.count}社</b> (目標${nc.target}社) ${nc.note}</div>`:''}
         </div>
       </div>
     </div>`;
@@ -1223,16 +1279,25 @@ function renderEvaluations(){
             const sc=axScores[i],w=ws[i];
             const cl=sc>=100?'ok':sc>=85?'warn':'down';
             const contribution=Math.round(sc*(w/100));
+            // サブテキスト：各軸の実数値
+            const subs=[
+              q25>0?`${(q26/q25*100).toFixed(0)}% (前年比)`:`Q1: ${fmtMoney(q26)}`,
+              REAL_RETENTION_DETAIL[e.id]?`${REAL_RETENTION_DETAIL[e.id].rate}% (${REAL_RETENTION_DETAIL[e.id].q4}→${REAL_RETENTION_DETAIL[e.id].q1}社)`:'-',
+              att?`遅刻${att.lateCount}回 OT${att.overtimeH}h`:'-',
+              REAL_MARGIN_DETAIL[e.id]?`${REAL_MARGIN_DETAIL[e.id].rate}% (目標22%)`:'-',
+              REAL_NEWCUST_DETAIL[e.id]?`${REAL_NEWCUST_DETAIL[e.id].count}社 (目標${REAL_NEWCUST_DETAIL[e.id].target}社)`:'-',
+            ];
             return `<div class="axis-box">
-              <div style="font-size:16px;margin-bottom:2px">${a.icon}</div>
+              <div style="font-size:15px;margin-bottom:2px">${a.icon}</div>
               <div class="axis-score ${cl}">${sc}</div>
               <div class="axis-wt">× ${w}% = <b style="color:var(--tx)">${contribution}pt</b></div>
               <div class="axis-lbl">${a.label}</div>
-              <div style="height:3px;background:var(--bg);border-radius:2px;margin-top:4px"><div style="height:100%;width:${Math.min(sc/130*100,100)}%;background:${sc>=100?'#10d9a0':sc>=85?'#f5a623':'#f54e6e'};border-radius:2px"></div></div>
+              <div style="font-size:9px;color:var(--tx3);margin-top:2px;min-height:12px">${subs[i]}</div>
+              <div style="height:3px;background:var(--bg);border-radius:2px;margin-top:3px"><div style="height:100%;width:${Math.min(sc/130*100,100)}%;background:${sc>=100?'#10d9a0':sc>=85?'#f5a623':'#f54e6e'};border-radius:2px"></div></div>
             </div>`;
           }).join('')}
         </div>
-        <div style="font-size:10px;color:var(--tx3);margin-bottom:10px">※ 売上・顧客維持・勤怠は実データ連動。粗利・新規開拓は評価シートデータ（順次実データへ移行予定）</div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:10px">📊 売上 / 粗利率 / 顧客維持率 / 新規顧客: スーパーリカー SQL実データ（2026-04-09取得） &nbsp;|&nbsp; 勤怠: MF給与クラウド 2026年3月実績</div>
 
         <div class="divider"></div>
         ${isMgr?`<div style="margin-top:10px"><div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:500">店長コメント</div><textarea class="comment-box" id="mgr-${e.id}" placeholder="評価コメントを入力…">${ap.managerComment||''}</textarea><button class="btn btn-save" onclick="saveManagerComment('${e.id}')" style="margin-top:6px">保存</button></div>`:''}
