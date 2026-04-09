@@ -182,6 +182,25 @@ body{font-family:'Inter','Hiragino Sans','Yu Gothic',system-ui,sans-serif;backgr
 .my-hero{background:linear-gradient(135deg,rgba(249,115,22,.08) 0%,rgba(6,12,23,0) 65%);border:1px solid rgba(249,115,22,.22);border-radius:var(--r);padding:28px;text-align:center;margin-bottom:14px}
 .divider{height:1px;background:var(--bd);margin:12px 0}
 
+/* ===== EVAL WEIGHT PANEL ===== */
+.wt-grid{display:grid;grid-template-columns:90px repeat(5,1fr);gap:6px;align-items:center}
+.wt-head{font-size:10px;color:var(--tx2);font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em;padding:4px 2px}
+.wt-role{font-size:11px;color:var(--tx);font-weight:600;padding:6px 0}
+.wt-cell{position:relative}
+.wt-inp{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-size:14px;font-weight:700;padding:5px 2px;text-align:center;font-family:inherit;transition:border-color .15s}
+.wt-inp:focus{outline:none;border-color:var(--ac)}
+.wt-inp.err{border-color:var(--rd);color:var(--rd)}
+.wt-sum{font-size:11px;font-weight:700;text-align:center;padding:4px 0}
+.axis-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0 4px}
+.axis-box{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:7px 6px;text-align:center}
+.axis-score{font-size:18px;font-weight:900;line-height:1.1}
+.axis-wt{font-size:10px;color:var(--tx3);margin-top:2px}
+.axis-lbl{font-size:10px;color:var(--tx2);margin-top:3px;font-weight:500}
+.real-data-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;padding:10px 12px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--bd)}
+.rdat{text-align:center;flex:1;min-width:70px}
+.rdat-v{font-size:16px;font-weight:800;line-height:1.1}
+.rdat-l{font-size:10px;color:var(--tx2);margin-top:2px;white-space:nowrap}
+
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -389,6 +408,80 @@ const MOCK_EVALS={'2026-Q1':[
   {id:'emp_ake',name:'芦塚 あかね',role:'経理管理',color:'#84cc16',avatar:'あ',total:101,newProductCount:5, newProductTarget:5, newProductScore:100,avgGrossMargin:30,marginTarget:28,marginScore:107,settlementRate:72,settlementTarget:70,settlementScore:103,prevScore:96},
   {id:'emp_sak',name:'酒井 さやか',role:'店舗販売',color:'#f97316',avatar:'酒',total:76, newProductCount:4, newProductTarget:6, newProductScore:67, avgGrossMargin:23,marginTarget:28,marginScore:82, settlementRate:55,settlementTarget:70,settlementScore:79, prevScore:72},
 ]};
+
+/* ─── 評価軸設定 & 実データスコア計算 ─── */
+const EVAL_AXES=[
+  {key:'sales',  label:'売上達成',  icon:'💴',desc:'Q1-2026 vs Q1-2025'},
+  {key:'cust',   label:'顧客維持',  icon:'🤝',desc:'危険顧客数から算出'},
+  {key:'att',    label:'勤怠行動',  icon:'📅',desc:'遅刻・欠勤ペナルティ'},
+  {key:'margin', label:'粗利貢献',  icon:'📊',desc:'粗利率 vs 目標 28%'},
+  {key:'newprod',label:'新規開拓',  icon:'🆕',desc:'新商品・新顧客獲得'},
+];
+// 役割別デフォルトウェイト（売上/顧客維持/勤怠/粗利/新規）
+const EVAL_ROLE_DEF={
+  '配送':    [40,25,15,15, 5],
+  '店舗販売':[30,20,20,15,15],
+  '販売管理':[30,25,15,15,15],
+  '店長':    [25,25,20,20,10],
+  '経理管理':[ 5,10,45,20,20],
+  '管理職':  [20,20,30,20,10],
+};
+// 管理者が画面で調整したウェイト（role -> [w0..w4]）
+let evalRoleWeights=JSON.parse(JSON.stringify(EVAL_ROLE_DEF));
+function getWeights(role){return evalRoleWeights[role]||[20,20,20,20,20];}
+
+// 実データから各軸スコア（0〜130）を算出
+function calcAxisScores(empId){
+  const NM={emp_tan:'谷口 亮介',emp_oku:'奥田 玲晃',emp_abi:'阿比留 徹',emp_aka:'赤川 秀敏',emp_ima:'今村 淳子',emp_kaw:'川原 未香',emp_ash:'芦塚 義幸',emp_ake:'芦塚 あかね',emp_sak:'酒井 さやか'};
+  const name=NM[empId];
+  // 1. 売上達成: Q1-2026 vs Q1-2025
+  const rep=name&&REAL_REP_MONTHLY[name];
+  let salesSc=100;
+  if(rep){
+    const q26=(rep.y2026[0]||0)+(rep.y2026[1]||0)+(rep.y2026[2]||0);
+    const q25=(rep.y2025[0]||0)+(rep.y2025[1]||0)+(rep.y2025[2]||0);
+    if(q25>200000) salesSc=Math.min(130,Math.round(q26/q25*100));
+    else if(q26>0) salesSc=108; // 新任・データ不足
+    else salesSc=88;
+  }
+  // 2. 顧客維持: 確定チャーン数からペナルティ
+  const danger=REAL_DANGER_BY_REP.find(d=>d.name===name);
+  let custSc=100;
+  if(danger) custSc=Math.max(55,Math.round(100-danger.churn*0.45));
+  // 3. 勤怠: 遅刻・欠勤ペナルティ
+  const att=ATTENDANCE_DATA.find(d=>d.id===empId);
+  let attSc=100;
+  if(att){
+    attSc-=att.lateCount*6;
+    attSc-=att.absenceCount*10;
+    if(att.overtimeH>40) attSc-=Math.round((att.overtimeH-40)/3);
+    attSc=Math.max(55,attSc);
+  }
+  // 4. 粗利貢献: 現モックデータ（将来的に SQL実績へ移行）
+  const ev=MOCK_EVALS['2026-Q1'].find(e=>e.id===empId);
+  const marginSc=ev?ev.marginScore:90;
+  // 5. 新規開拓: 現モックデータ（将来的に SQL実績へ移行）
+  const newSc=ev?ev.newProductScore:90;
+  return [salesSc,custSc,attSc,marginSc,newSc];
+}
+function calcWeightedTotal(empId,role){
+  const ws=getWeights(role);
+  return Math.round(calcAxisScores(empId).reduce((s,sc,i)=>s+sc*(ws[i]/100),0));
+}
+// UIからのウェイト変更
+function updateRoleWeight(role,idx,val){
+  if(!evalRoleWeights[role]) evalRoleWeights[role]=[20,20,20,20,20];
+  evalRoleWeights[role][idx]=Math.max(0,Math.min(100,+val||0));
+  // 合計チェック＆表示更新
+  const sum=evalRoleWeights[role].reduce((a,b)=>a+b,0);
+  const safeRole=role.replace(/\s/g,'_');
+  const sumEl=document.getElementById(`wt-sum-${safeRole}`);
+  if(sumEl){sumEl.textContent=`合計: ${sum}`;sumEl.style.color=sum===100?'#10d9a0':'#f54e6e';}
+  // 全インプットのerr class更新
+  for(let i=0;i<5;i++){const el=document.getElementById(`wt-${safeRole}-${i}`);if(el)el.classList.toggle('err',sum!==100);}
+}
+function applyWeights(){renderPage('evaluations');toast('評価ウェイトを更新しました','success');}
+function resetWeights(){evalRoleWeights=JSON.parse(JSON.stringify(EVAL_ROLE_DEF));renderPage('evaluations');toast('デフォルトに戻しました','info');}
 
 const MOCK_DELIVERY=[
   {id:'emp_tan',name:'谷口 亮介',color:'#3b82f6',avatar:'谷',deliveries:142,containers:38,containerTarget:42,sales:4280000,salesTarget:4000000,margin:32,newProducts:9,targetProducts:5,claims:0,absent:0,late:0,accountsReceivable:280000,receivableTarget:300000,vehicleCheck:true,startMeter:48320,endMeter:48497,monthlyKm:3240},
@@ -1014,38 +1107,133 @@ function renderRanking(){
 }
 
 /* ══════════════════════════════════════════
-   評価承認
+   評価承認（実データ × 役割別ウェイト）
 ══════════════════════════════════════════ */
 function renderEvaluations(){
   const evals=MOCK_EVALS['2026-Q1'];
   const isMgr=currentRole==='manager',isPrs=currentRole==='president';
   const done=evals.length-getPendingCount();
-  return pageHd(isPrs?'評価承認':'評価レビュー','2026-Q1')+`
+  const NM_MAP={emp_tan:'谷口 亮介',emp_oku:'奥田 玲晃',emp_abi:'阿比留 徹',emp_aka:'赤川 秀敏',emp_ima:'今村 淳子',emp_kaw:'川原 未香',emp_ash:'芦塚 義幸',emp_ake:'芦塚 あかね',emp_sak:'酒井 さやか'};
+
+  // ━━ 役割別ウェイト設定パネル（社長のみ）━━
+  const roles=Object.keys(evalRoleWeights);
+  const wtPanel=isPrs?`
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-head" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+      <div class="panel-title">⚖️ 評価軸バランス設定（役割別ウェイト）</div>
+      <span class="panel-sub" style="color:#f97316">社長専用 · クリックで展開</span>
+    </div>
+    <div style="display:none;padding:14px 16px">
+      <div style="font-size:11px;color:var(--tx2);margin-bottom:12px">各役割の評価軸ウェイトを設定します（合計が100になるよう調整してください）。ここで設定した値が各社員のスコアに反映されます。</div>
+      <!-- 軸ラベル行 -->
+      <div class="wt-grid" style="margin-bottom:4px">
+        <div></div>
+        ${EVAL_AXES.map(a=>`<div class="wt-head">${a.icon}${a.label}</div>`).join('')}
+      </div>
+      <!-- 役割ごとの行 -->
+      ${roles.map(role=>{
+        const safeRole=role.replace(/\s/g,'_');
+        const ws=evalRoleWeights[role]||[20,20,20,20,20];
+        const sum=ws.reduce((a,b)=>a+b,0);
+        return `<div class="wt-grid" style="margin-bottom:6px">
+          <div class="wt-role">${role}</div>
+          ${ws.map((w,i)=>`<div class="wt-cell"><input class="wt-inp${sum!==100?' err':''}" id="wt-${safeRole}-${i}" type="number" min="0" max="100" value="${w}" oninput="updateRoleWeight('${role}',${i},this.value)"></div>`).join('')}
+        </div>
+        <div style="grid-column:1/-1;text-align:right;font-size:11px;font-weight:700;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bd);color:${sum===100?'#10d9a0':'#f54e6e'}" id="wt-sum-${safeRole}">合計: ${sum}</div>`;
+      }).join('')}
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-approve" onclick="applyWeights()" style="padding:7px 20px">✅ スコアに反映</button>
+        <button class="btn btn-save" onclick="resetWeights()">リセット</button>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--tx2)">
+        ${EVAL_AXES.map(a=>`<span style="margin-right:12px">${a.icon}<b>${a.label}</b>: ${a.desc}</span>`).join('')}
+      </div>
+    </div>
+  </div>`:'';
+
+  return pageHd(isPrs?'評価承認':'評価レビュー','2026-Q1 · 実データ連動スコア')+`
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
     <span style="font-size:12px;color:var(--tx2)">承認進捗</span>
     <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;max-width:180px"><div style="height:100%;width:${done/evals.length*100}%;background:var(--gn);border-radius:3px;transition:width .5s"></div></div>
     <span style="font-size:12px;font-weight:700;color:var(--gn)">${done} / ${evals.length}件</span>
+    <span style="font-size:10px;color:var(--tx3);margin-left:8px">💴売上: MDBリアルタイム &nbsp;🤝顧客維持: MDB分析 &nbsp;📅勤怠: MF実績</span>
   </div>
+  ${wtPanel}
   ${evals.map(e=>{
     const ap=approvals[e.id]||{};
+    const axScores=calcAxisScores(e.id);
+    const ws=getWeights(e.role);
+    const newTotal=calcWeightedTotal(e.id,e.role);
+    const d=newTotal-e.prevScore;
+    const rep=REAL_REP_MONTHLY[NM_MAP[e.id]];
+    const q26=rep?((rep.y2026[0]||0)+(rep.y2026[1]||0)+(rep.y2026[2]||0)):0;
+    const q25=rep?((rep.y2025[0]||0)+(rep.y2025[1]||0)+(rep.y2025[2]||0)):0;
+    const danger=REAL_DANGER_BY_REP.find(d=>d.name===NM_MAP[e.id]);
+    const att=ATTENDANCE_DATA.find(a=>a.id===e.id);
     return `<div class="eval-card open" id="ec-${e.id}">
       <div class="eval-head" style="cursor:default">
         <div class="av av-md" style="background:${e.color}">${e.avatar}</div>
         <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:var(--tx)">${e.name}</div>
-          <div style="font-size:11px;color:var(--tx2)">${e.role}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--tx)">${e.name}
+            <span style="font-size:11px;font-weight:500;color:var(--tx2);margin-left:8px">${e.role}</span>
+          </div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:2px">前期比 <span style="color:${d>=0?'#10d9a0':'#f54e6e'};font-weight:700">${d>=0?'+':''}${d}pt</span>
+            <span style="color:var(--tx3);margin:0 6px">·</span>
+            ${ap.presidentApproved?'<span style="color:#10d9a0;font-weight:700">✅ 承認済</span>':'<span style="color:#f5a623">⏳ 承認待ち</span>'}
+          </div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:30px;font-weight:900;color:${e.total>=100?'#fbbf24':'#10d9a0'};letter-spacing:-.02em">${e.total}</div>
-          <span class="badge ${e.total>=100?'badge-amber':'badge-blue'}">${bonusLabel(e.total)}</span>
+          <div style="font-size:38px;font-weight:900;color:${newTotal>=100?'#fbbf24':'#10d9a0'};line-height:1;letter-spacing:-.03em">${newTotal}</div>
+          <span class="badge ${newTotal>=100?'badge-amber':'badge-blue'}">${bonusLabel(newTotal)}</span>
         </div>
       </div>
       <div class="eval-body" style="display:block">
-        <div class="g3" style="margin-bottom:14px">
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">🆕 新商品開拓（33%）</div>${sbar(e.newProductScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.newProductCount}件/目標${e.newProductTarget}件</div></div>
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">💴 販売利益率（33%）</div>${sbar(e.marginScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.avgGrossMargin}%/目標${e.marginTarget}%</div></div>
-          <div><div style="font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500">📌 定着率（34%）</div>${sbar(e.settlementScore)}<div style="font-size:10px;color:var(--tx2);margin-top:3px">${e.settlementRate}%/目標${e.settlementTarget}%</div></div>
+
+        <!-- ━━ 実データ サマリー ━━ -->
+        <div class="real-data-row">
+          <div class="rdat">
+            <div class="rdat-v ${q25>0?rateCls(q26/q25*100):'ok'}">${q26>0?fmtMoney(q26):'―'}</div>
+            <div class="rdat-l">Q1-2026 売上</div>
+          </div>
+          <div class="rdat">
+            <div class="rdat-v" style="color:var(--tx2);font-size:12px">${q25>0?fmtMoney(q25):'―'}</div>
+            <div class="rdat-l">Q1-2025 売上</div>
+          </div>
+          <div class="rdat">
+            <div class="rdat-v ${q25>0?(q26/q25>=1?'up':'down'):'ok'}">${q25>0?(q26/q25*100).toFixed(0)+'%':'―'}</div>
+            <div class="rdat-l">前年同期比</div>
+          </div>
+          <div class="rdat">
+            <div class="rdat-v ${danger?(danger.churn>20?'down':danger.churn>5?'warn':'ok'):'ok'}">${danger?danger.churn+'件':'0件'}</div>
+            <div class="rdat-l">確定チャーン</div>
+          </div>
+          <div class="rdat">
+            <div class="rdat-v ${att?(att.lateCount>0?'warn':'ok'):'ok'}">${att?att.lateCount+'回':'―'}</div>
+            <div class="rdat-l">遅刻（3月）</div>
+          </div>
+          <div class="rdat">
+            <div class="rdat-v" style="color:var(--tx2)">${att?att.overtimeH+'h':'―'}</div>
+            <div class="rdat-l">残業時間</div>
+          </div>
         </div>
+
+        <!-- ━━ 評価軸スコア（役割別ウェイト反映）━━ -->
+        <div class="axis-row">
+          ${EVAL_AXES.map((a,i)=>{
+            const sc=axScores[i],w=ws[i];
+            const cl=sc>=100?'ok':sc>=85?'warn':'down';
+            const contribution=Math.round(sc*(w/100));
+            return `<div class="axis-box">
+              <div style="font-size:16px;margin-bottom:2px">${a.icon}</div>
+              <div class="axis-score ${cl}">${sc}</div>
+              <div class="axis-wt">× ${w}% = <b style="color:var(--tx)">${contribution}pt</b></div>
+              <div class="axis-lbl">${a.label}</div>
+              <div style="height:3px;background:var(--bg);border-radius:2px;margin-top:4px"><div style="height:100%;width:${Math.min(sc/130*100,100)}%;background:${sc>=100?'#10d9a0':sc>=85?'#f5a623':'#f54e6e'};border-radius:2px"></div></div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:10px">※ 売上・顧客維持・勤怠は実データ連動。粗利・新規開拓は評価シートデータ（順次実データへ移行予定）</div>
+
         <div class="divider"></div>
         ${isMgr?`<div style="margin-top:10px"><div style="font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:500">店長コメント</div><textarea class="comment-box" id="mgr-${e.id}" placeholder="評価コメントを入力…">${ap.managerComment||''}</textarea><button class="btn btn-save" onclick="saveManagerComment('${e.id}')" style="margin-top:6px">保存</button></div>`:''}
         ${isPrs?`<div style="margin-top:10px">
